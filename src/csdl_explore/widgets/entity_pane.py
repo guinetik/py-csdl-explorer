@@ -28,10 +28,19 @@ class EntityTabPane(TabPane):
     """
 
     DEFAULT_CSS = """
+    /* ── Collapsible: remove content indent ──────────── */
+    Collapsible > Contents {
+        padding: 0;
+    }
+
     /* ── Auth section ────────────────────────────────── */
     .q-base-url {
         width: 1fr;
         margin: 0 1;
+    }
+
+    .q-spacer {
+        height: 1;
     }
 
     .q-auth-row {
@@ -52,6 +61,7 @@ class EntityTabPane(TabPane):
         height: auto;
         max-height: 12;
         padding: 0 1;
+        margin: 0 0 1 0;
     }
 
     .q-param-col {
@@ -78,13 +88,11 @@ class EntityTabPane(TabPane):
         height: 3;
     }
 
-    .q-top-row {
-        height: 3;
-    }
-
     .q-top-label {
         width: auto;
-        padding: 0 1 0 1;
+        height: 3;
+        content-align-vertical: middle;
+        padding: 0 1;
         text-style: bold;
         color: $primary;
     }
@@ -93,19 +101,24 @@ class EntityTabPane(TabPane):
         width: 10;
     }
 
+    .q-lists-spacer {
+        height: 1;
+    }
+
     .q-lists-row {
-        height: 20;
+        height: 24;
         padding: 0 1;
     }
 
     .q-list-col {
         width: 1fr;
-        height: 1fr;
+        height: 100%;
         padding: 0 1 0 0;
     }
 
     .q-list-search {
         height: 3;
+        margin: 0 0 1 0;
     }
 
     /* ── URL bar ─────────────────────────────────────── */
@@ -179,6 +192,7 @@ class EntityTabPane(TabPane):
                 id=f"q-base-url-{eid}",
                 classes="q-base-url",
             )
+            yield Static(" ", classes="q-spacer")
             with Horizontal(classes="q-auth-row"):
                 yield Select(
                     [
@@ -235,13 +249,15 @@ class EntityTabPane(TabPane):
                             id=f"q-orderby-dir-{eid}",
                             allow_blank=False,
                         )
-                    with Horizontal(classes="q-top-row"):
                         yield Static("$top", classes="q-top-label")
                         yield Input(
                             value="20",
                             id=f"q-top-{eid}",
                             classes="q-top-input",
                         )
+
+            # Spacer between params and lists
+            yield Static(" ", classes="q-lists-spacer")
 
             # Row 2: $select (left) + $expand (right)
             with Horizontal(classes="q-lists-row"):
@@ -523,12 +539,13 @@ class EntityTabPane(TabPane):
             return
 
         conn = self._build_query_connection()
-        self._save_query_connection(conn)
+        self.app.sap_connection = conn
 
         status = self.query_one(f"#q-status-{eid}", Static)
         table = self.query_one(f"#q-results-{eid}", DataTable)
 
         status.update("[dim]Querying...[/]")
+        self.app.notify("Sending query\u2026", timeout=2)
 
         # Auto-expand results section
         try:
@@ -559,6 +576,7 @@ class EntityTabPane(TabPane):
 
             if not results:
                 status.update(f"Connected to [bold]{conn.base_url}[/] \u2014 no results")
+                self.app.notify("Query returned no results", severity="warning", timeout=3)
                 return
 
             # Build columns from first result's keys (skip __metadata)
@@ -573,9 +591,11 @@ class EntityTabPane(TabPane):
                 f"Connected to [bold]{conn.base_url}[/] \u2014 "
                 f"[bold]{len(results)}[/] results, [bold]{len(columns)}[/] columns"
             )
+            self.app.notify(f"{len(results)} results, {len(columns)} columns", timeout=3)
 
         except Exception as e:
             status.update(f"[red]Error: {e}[/]")
+            self.app.notify(f"Query failed: {e}", severity="error", timeout=5)
 
     # ── Event handlers ────────────────────────────────────────────
 
