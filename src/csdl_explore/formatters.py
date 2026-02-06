@@ -1,7 +1,7 @@
 """
 Shared presentation logic for CSDL Explorer.
 
-Pure data transformations consumed by both the Rich REPL (tui.py) and
+Pure data transformations consumed by both the Rich REPL (repl.py) and
 Textual TUI (app.py).  These functions return plain data (strings, lists
 of tuples, dicts) and never import any UI framework.
 """

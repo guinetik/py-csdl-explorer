@@ -8,7 +8,7 @@ from pathlib import Path
 from rich.console import Console
 
 from .explorer import CSDLExplorer
-from . import tui
+from . import repl
 
 
 console = Console()
@@ -133,7 +133,7 @@ def run_file_mode(metadata_file: Path, command: str, cmd_args: list[str], use_te
         if use_textual_tui:
             run_textual_app(explorer)
         else:
-            tui.run_interactive(explorer)
+            repl.run_interactive(explorer)
     else:
         run_command(explorer, command, cmd_args)
 
@@ -160,7 +160,7 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
     """
     try:
         if command == 'entities':
-            tui.print_entities(explorer.list_entities())
+            repl.print_entities(explorer.list_entities())
 
         elif command in ('entity', 'e'):
             if not args:
@@ -168,10 +168,10 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
                 sys.exit(1)
             entity = explorer.get_entity(args[0])
             if entity:
-                tui.print_entity_details(entity)
+                repl.print_entity_details(entity)
             else:
                 suggestions = [r.entity for r in explorer.search(args[0]) if r.type == 'entity'][:5]
-                tui.print_not_found(args[0], suggestions)
+                repl.print_not_found(args[0], suggestions)
                 sys.exit(1)
 
         elif command in ('search', 's'):
@@ -179,41 +179,41 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
                 console.print("[yellow]Usage: search <term>[/]")
                 sys.exit(1)
             results = explorer.search(' '.join(args))
-            tui.print_search_results(results)
+            repl.print_search_results(results)
 
         elif command in ('custom', 'c'):
             if not args:
                 console.print("[yellow]Usage: custom <entity>[/]")
                 sys.exit(1)
             fields = explorer.get_custom_fields(args[0])
-            tui.print_custom_fields(fields, args[0])
+            repl.print_custom_fields(fields, args[0])
 
         elif command == 'nav':
             if not args:
                 console.print("[yellow]Usage: nav <entity>[/]")
                 sys.exit(1)
             nav_props = explorer.get_navigation_properties(args[0])
-            tui.print_navigation(nav_props, args[0])
+            repl.print_navigation(nav_props, args[0])
 
         elif command == 'diff':
             if len(args) < 2:
                 console.print("[yellow]Usage: diff <entity1> <entity2>[/]")
                 sys.exit(1)
             comp = explorer.compare_entities(args[0], args[1])
-            tui.print_comparison(comp)
+            repl.print_comparison(comp)
 
         elif command in ('path', 'paths'):
             if not args:
                 console.print("[yellow]Usage: path <entity>[/]")
                 sys.exit(1)
             paths = explorer.suggest_json_paths(args[0])
-            tui.print_json_paths(paths, args[0])
+            repl.print_json_paths(paths, args[0])
 
         elif command == 'emp':
-            tui.print_entities(explorer.get_emp_entities())
+            repl.print_entities(explorer.get_emp_entities())
 
         elif command == 'per':
-            tui.print_entities(explorer.get_per_entities())
+            repl.print_entities(explorer.get_per_entities())
 
         elif command in ('tree', 't'):
             if not args:
@@ -221,17 +221,17 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
                 sys.exit(1)
             entity = explorer.get_entity(args[0])
             if entity:
-                tui.print_entity_tree(entity, explorer)
+                repl.print_entity_tree(entity, explorer)
             else:
                 suggestions = [r.entity for r in explorer.search(args[0]) if r.type == 'entity'][:5]
-                tui.print_not_found(args[0], suggestions)
+                repl.print_not_found(args[0], suggestions)
                 sys.exit(1)
 
         elif command == 'model':
             if args:
-                tui.print_data_model(explorer, args)
+                repl.print_data_model(explorer, args)
             else:
-                tui.print_data_model(explorer)
+                repl.print_data_model(explorer)
 
         else:
             console.print(f"[red]Unknown command: {command}[/]")

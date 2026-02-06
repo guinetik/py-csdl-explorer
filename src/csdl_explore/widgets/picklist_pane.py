@@ -112,7 +112,9 @@ class PicklistTabPane(TabPane):
                     )
                 yield Static("Auth Type", classes="getval-auth-label")
                 with RadioSet(id=f"auth-type-{pid}", classes="getval-auth-radio"):
-                    yield RadioButton("Basic", value=True)
+                    yield RadioButton("None", value=True)
+                    yield RadioButton("Bearer")
+                    yield RadioButton("Basic")
                     yield RadioButton("OAuth2")
                 with Horizontal(classes="getval-bar"):
                     yield Button(
@@ -146,6 +148,9 @@ class PicklistTabPane(TabPane):
 
     # ── Get Values sub-tab ─────────────────────────────────────────
 
+    _AUTH_INDEX = {"none": 0, "bearer": 1, "basic": 2, "oauth2": 3}
+    _AUTH_NAMES = {v: k for k, v in _AUTH_INDEX.items()}
+
     def _prefill_connection(self) -> None:
         """Pre-fill Base URL and auth type from existing app.sap_connection."""
         conn = getattr(self.app, "sap_connection", None)
@@ -154,11 +159,11 @@ class PicklistTabPane(TabPane):
         pid = self.picklist_name
         if conn.base_url:
             self.query_one(f"#input-base-url-{pid}", Input).value = conn.base_url
-        if conn.auth_type == "oauth2":
+        idx = self._AUTH_INDEX.get(conn.auth_type, 0)
+        if idx != 0:
             try:
                 radio = self.query_one(f"#auth-type-{pid}", RadioSet)
-                # Select second radio button (OAuth2)
-                radio.query(RadioButton)[1].value = True
+                radio.query(RadioButton)[idx].value = True
             except Exception:
                 pass
 
@@ -166,7 +171,7 @@ class PicklistTabPane(TabPane):
         """Read current auth type from the radio set."""
         pid = self.picklist_name
         radio = self.query_one(f"#auth-type-{pid}", RadioSet)
-        return "basic" if radio.pressed_index == 0 else "oauth2"
+        return self._AUTH_NAMES.get(radio.pressed_index, "none")
 
     def _build_connection(self, creds: dict | None = None) -> "SAPConnection":
         """Build a SAPConnection from the inline fields + optional modal creds."""
@@ -180,6 +185,7 @@ class PicklistTabPane(TabPane):
         kwargs = {}
         if existing:
             kwargs = {
+                "bearer_token": existing.bearer_token,
                 "username": existing.username, "password": existing.password,
                 "idp_url": existing.idp_url, "token_url": existing.token_url,
                 "client_id": existing.client_id, "user_id": existing.user_id,
@@ -226,12 +232,18 @@ class PicklistTabPane(TabPane):
         from .auth_modal import AuthModal
 
         auth_type = self._get_auth_type()
+        if auth_type == "none":
+            self.app.notify("No credentials needed for 'None' auth", timeout=2)
+            return
+
         conn = getattr(self.app, "sap_connection", None)
         prefill = {}
         if conn:
-            if auth_type == "basic":
+            if auth_type == "bearer":
+                prefill = {"bearer_token": conn.bearer_token}
+            elif auth_type == "basic":
                 prefill = {"username": conn.username, "password": conn.password}
-            else:
+            elif auth_type == "oauth2":
                 prefill = {
                     "idp_url": conn.idp_url, "token_url": conn.token_url,
                     "client_id": conn.client_id, "user_id": conn.user_id,

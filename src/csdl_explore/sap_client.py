@@ -12,17 +12,24 @@ from typing import Optional
 import httpx
 
 
+AUTH_TYPES = ("none", "bearer", "basic", "oauth2")
+"""Supported authentication types."""
+
+
 @dataclass
 class SAPConnection:
-    """SAP connection configuration.
+    """OData connection configuration.
 
-    Supports two authentication types:
+    Supports four authentication types:
+    - ``none``: No authentication.
+    - ``bearer``: Static Bearer token.
     - ``basic``: Username/password authentication.
     - ``oauth2``: OAuth2 SAML Bearer assertion flow.
 
     Args:
-        base_url: Base URL of the SAP OData service (e.g. ``https://api.sap.com/odata/v2``).
-        auth_type: Authentication type — ``"basic"`` or ``"oauth2"``.
+        base_url: Base URL of the OData service (e.g. ``https://api.sap.com/odata/v2``).
+        auth_type: Authentication type — ``"none"``, ``"bearer"``, ``"basic"``, or ``"oauth2"``.
+        bearer_token: Static Bearer token.
         username: Username for Basic auth.
         password: Password for Basic auth.
         idp_url: Identity Provider URL for SAML assertion (OAuth2).
@@ -35,7 +42,9 @@ class SAPConnection:
     """
 
     base_url: str = ""
-    auth_type: str = "basic"
+    auth_type: str = "none"
+    # Bearer token
+    bearer_token: str = ""
     # Basic
     username: str = ""
     password: str = ""
@@ -51,6 +60,7 @@ class SAPConnection:
     _ENV_MAP = {
         "SAP_BASE_URL": "base_url",
         "SAP_AUTH_TYPE": "auth_type",
+        "SAP_BEARER_TOKEN": "bearer_token",
         "SAP_USERNAME": "username",
         "SAP_PASSWORD": "password",
         "SAP_IDP_URL": "idp_url",
@@ -139,17 +149,15 @@ class SAPClient:
         return self._client
 
     async def authenticate(self) -> None:
-        """Authenticate with the SAP service.
+        """Authenticate with the OData service.
 
-        For Basic auth this is a no-op. For OAuth2 SAML Bearer, performs:
-        1. POST to IDP URL to get SAML assertion.
-        2. POST to Token URL to exchange assertion for access token.
+        - ``none`` / ``basic`` / ``bearer``: No-op (credentials sent per-request).
+        - ``oauth2``: Performs SAML Bearer assertion flow to obtain access token.
 
         Raises:
-            httpx.HTTPStatusError: On authentication failure.
-            ValueError: On missing or invalid configuration.
+            RuntimeError: On authentication failure.
         """
-        if self.connection.auth_type == "basic":
+        if self.connection.auth_type in ("none", "basic", "bearer"):
             return
 
         if self.connection.auth_type == "oauth2":
@@ -188,6 +196,76 @@ class SAPClient:
             token_data = token_resp.json()
             self._access_token = token_data.get("access_token", "")
 
+    async def _request(
+        self,
+        method: str,
+        url: str,
+        *,
+        params: dict | None = None,
+        headers: dict | None = None,
+    ) -> httpx.Response:
+        """Send an authenticated HTTP request.
+
+        Applies auth credentials based on connection type. All API methods
+        should use this instead of calling the client directly.
+        """
+        client = await self._get_client()
+        headers = dict(headers or {})
+        auth = None
+
+        if self.connection.auth_type == "basic":
+            auth = httpx.BasicAuth(self.connection.username, self.connection.password)
+        elif self.connection.auth_type == "bearer":
+            headers["Authorization"] = f"Bearer {self.connection.bearer_token}"
+        elif self.connection.auth_type == "oauth2":
+            headers["Authorization"] = f"Bearer {self._access_token}"
+        # "none" — no auth added
+
+        return await client.request(
+            method, url, params=params, headers=headers, auth=auth,
+        )
+
+    async def query_entity(
+        self,
+        entity_set: str,
+        params: dict[str, str],
+    ) -> tuple[list[dict], str]:
+        """Execute an OData GET query against an entity set.
+
+        Args:
+            entity_set: The entity set name (e.g. ``"PerPerson"``).
+            params: OData query parameters (``$select``, ``$filter``, etc.).
+
+        Returns:
+            Tuple of (results list of dicts, full URL string for preview).
+
+        Raises:
+            RuntimeError: On HTTP errors.
+        """
+        url = f"{self.connection.base_url.rstrip('/')}/{entity_set}"
+        query = {"$format": "json"}
+        if "$top" not in params:
+            query["$top"] = "20"
+        query.update(params)
+
+        resp = await self._request(
+            "GET", url, params=query, headers={"Accept": "application/json"},
+        )
+        full_url = str(resp.url)
+
+        if resp.status_code >= 400:
+            try:
+                body = resp.text[:500]
+            except Exception:
+                body = ""
+            raise RuntimeError(
+                f"HTTP {resp.status_code} from {full_url}\n{body}"
+            )
+
+        data = resp.json()
+        results = data.get("d", {}).get("results", [])
+        return results, full_url
+
     async def get_picklist_values(self, picklist_name: str) -> list[dict]:
         """Fetch picklist option values from the SAP OData API.
 
@@ -201,7 +279,6 @@ class SAPClient:
         Raises:
             httpx.HTTPStatusError: On API errors.
         """
-        client = await self._get_client()
         url = (
             f"{self.connection.base_url.rstrip('/')}"
             f"/Picklist('{picklist_name}')/picklistOptions"
@@ -211,14 +288,10 @@ class SAPClient:
             "$select": "id,externalCode,picklistLabels/label",
             "$expand": "picklistLabels",
         }
-        headers = {"Accept": "application/json"}
 
-        if self.connection.auth_type == "basic":
-            auth = httpx.BasicAuth(self.connection.username, self.connection.password)
-            resp = await client.get(url, params=params, headers=headers, auth=auth)
-        else:
-            headers["Authorization"] = f"Bearer {self._access_token}"
-            resp = await client.get(url, params=params, headers=headers)
+        resp = await self._request(
+            "GET", url, params=params, headers={"Accept": "application/json"},
+        )
 
         if resp.status_code >= 400:
             try:

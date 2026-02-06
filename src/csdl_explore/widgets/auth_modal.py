@@ -1,4 +1,4 @@
-"""Modal screen for configuring SAP authentication credentials."""
+"""Modal screen for configuring authentication credentials."""
 
 from textual.app import ComposeResult
 from textual.containers import Vertical, Horizontal
@@ -11,6 +11,7 @@ class AuthModal(ModalScreen[dict | None]):
     """Modal dialog for entering auth credentials only.
 
     The auth_type determines which fields are shown:
+    - ``"bearer"``: Bearer token
     - ``"basic"``: Username + Password
     - ``"oauth2"``: IDP URL, Token URL, Client ID, User ID, Company ID,
       Private Key, Grant Type
@@ -66,7 +67,7 @@ class AuthModal(ModalScreen[dict | None]):
     def __init__(self, auth_type: str, prefill: dict | None = None):
         """
         Args:
-            auth_type: ``"basic"`` or ``"oauth2"``.
+            auth_type: ``"bearer"``, ``"basic"``, or ``"oauth2"``.
             prefill: Optional dict of field values to pre-populate.
         """
         super().__init__()
@@ -74,16 +75,29 @@ class AuthModal(ModalScreen[dict | None]):
         self._prefill = prefill or {}
 
     def compose(self) -> ComposeResult:
-        title = "Basic Credentials" if self._auth_type == "basic" else "OAuth2 SAML Bearer"
+        titles = {
+            "bearer": "Bearer Token",
+            "basic": "Basic Credentials",
+            "oauth2": "OAuth2 SAML Bearer",
+        }
+        title = titles.get(self._auth_type, "Credentials")
         with Vertical(id="auth-modal-container"):
             yield Static(title, id="auth-modal-title")
 
-            if self._auth_type == "basic":
+            if self._auth_type == "bearer":
+                yield Static("Bearer Token", classes="field-label")
+                yield Input(
+                    placeholder="Paste your access / API token",
+                    id="input-bearer-token",
+                    password=True,
+                    classes="auth-input",
+                )
+            elif self._auth_type == "basic":
                 yield Static("Username", classes="field-label")
-                yield Input(placeholder="SAP username", id="input-username", classes="auth-input")
+                yield Input(placeholder="Username", id="input-username", classes="auth-input")
                 yield Static("Password", classes="field-label")
-                yield Input(placeholder="SAP password", id="input-password", password=True, classes="auth-input")
-            else:
+                yield Input(placeholder="Password", id="input-password", password=True, classes="auth-input")
+            elif self._auth_type == "oauth2":
                 yield Static("IDP URL", classes="field-label")
                 yield Input(placeholder="https://idp.example.com/oauth/token", id="input-idp-url", classes="auth-input")
                 yield Static("Token URL", classes="field-label")
@@ -110,6 +124,7 @@ class AuthModal(ModalScreen[dict | None]):
     def on_mount(self) -> None:
         """Pre-fill fields from existing credentials."""
         field_map = {
+            "bearer_token": "#input-bearer-token",
             "username": "#input-username",
             "password": "#input-password",
             "idp_url": "#input-idp-url",
@@ -131,10 +146,12 @@ class AuthModal(ModalScreen[dict | None]):
     def _on_save(self) -> None:
         """Collect field values and dismiss."""
         result = {}
-        if self._auth_type == "basic":
+        if self._auth_type == "bearer":
+            result["bearer_token"] = self.query_one("#input-bearer-token", Input).value.strip()
+        elif self._auth_type == "basic":
             result["username"] = self.query_one("#input-username", Input).value.strip()
             result["password"] = self.query_one("#input-password", Input).value.strip()
-        else:
+        elif self._auth_type == "oauth2":
             result["idp_url"] = self.query_one("#input-idp-url", Input).value.strip()
             result["token_url"] = self.query_one("#input-token-url", Input).value.strip()
             result["client_id"] = self.query_one("#input-client-id", Input).value.strip()
@@ -142,7 +159,6 @@ class AuthModal(ModalScreen[dict | None]):
             result["company_id"] = self.query_one("#input-company-id", Input).value.strip()
             result["private_key"] = self.query_one("#input-private-key", Input).value.strip()
             result["grant_type"] = self.query_one("#input-grant-type", Input).value.strip()
-            # Default grant type if left empty
             if not result["grant_type"]:
                 result["grant_type"] = "urn:ietf:params:oauth:grant-type:saml2-bearer-assertion"
         self.dismiss(result)

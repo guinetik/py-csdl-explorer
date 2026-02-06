@@ -43,7 +43,7 @@ ALL_THEMES = [VERCEL_THEME, CLASSIC_THEME]
 THEME_NAMES = [t.name for t in ALL_THEMES]
 
 # ── Rich REPL palettes ────────────────────────────────────────────────
-# Simple role→Rich-markup-color mappings used by tui.py.
+# Simple role→Rich-markup-color mappings used by repl.py.
 
 PALETTES: dict[str, dict[str, str]] = {
     "terminal-vercel-green": {
