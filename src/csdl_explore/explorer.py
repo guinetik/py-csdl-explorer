@@ -46,15 +46,17 @@ class CSDLExplorer:
     parsed CSDL metadata from any OData service.
     """
 
-    def __init__(self, metadata_xml: str):
+    def __init__(self, metadata_xml: str, metadata_path: Optional[Path] = None):
         """
         Initialize explorer with raw metadata XML.
 
         Args:
             metadata_xml: Raw XML string from $metadata endpoint
+            metadata_path: Optional path to the source metadata file
         """
         self.parser = CSDLParser(metadata_xml)
         self.entities = self.parser.entities
+        self.metadata_path = metadata_path
 
     @classmethod
     def from_file(cls, metadata_path: Path) -> "CSDLExplorer":
@@ -70,7 +72,7 @@ class CSDLExplorer:
         if not metadata_path.exists():
             raise FileNotFoundError(f"Metadata not found: {metadata_path}")
         metadata_xml = metadata_path.read_text(encoding='utf-8')
-        return cls(metadata_xml)
+        return cls(metadata_xml, metadata_path=metadata_path)
 
     def list_entities(self, pattern: Optional[str] = None) -> list[str]:
         """

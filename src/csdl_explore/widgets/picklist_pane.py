@@ -1,8 +1,8 @@
-"""Picklist tab pane — shows Overview, Entities, and Impact Analysis for a picklist."""
+"""Picklist tab pane — shows Overview, Entities, Impact Analysis, and Get Values."""
 
-from textual.containers import VerticalScroll
-from textual.widgets import Static, DataTable, TabbedContent, TabPane
-from textual import on
+from textual.containers import VerticalScroll, Horizontal
+from textual.widgets import Static, DataTable, TabbedContent, TabPane, Button, Input, RadioSet, RadioButton
+from textual import on, work
 from textual.message import Message
 
 from rich.console import Group
@@ -17,12 +17,55 @@ from ..themes import VERCEL_THEME
 
 
 class PicklistTabPane(TabPane):
-    """A tab pane displaying Overview, Entities, and Impact Analysis for one picklist.
+    """A tab pane displaying Overview, Entities, Impact Analysis, and Get Values for one picklist.
 
     Args:
         name: The picklist name.
         picklist_data: Mapping of entity name to list of properties referencing this picklist.
         explorer: The CSDL explorer instance.
+    """
+
+    DEFAULT_CSS = """
+    .getval-conn-row {
+        height: 3;
+        padding: 0 1;
+        align: left middle;
+    }
+
+    .getval-conn-row Static {
+        width: auto;
+        padding: 0 1 0 0;
+    }
+
+    .getval-url-input {
+        width: 1fr;
+    }
+
+    .getval-auth-label {
+        padding: 0 1;
+        height: 1;
+    }
+
+    .getval-auth-radio {
+        height: auto;
+        max-height: 6;
+        padding: 0 1;
+    }
+
+    .getval-bar {
+        height: 3;
+        padding: 0 1;
+        align: left middle;
+    }
+
+    .getval-bar Button {
+        margin: 0 1 0 0;
+    }
+
+    .getval-status {
+        padding: 0 1;
+        height: auto;
+    }
     """
 
     class EntitySelected(Message):
@@ -59,12 +102,208 @@ class PicklistTabPane(TabPane):
                         zebra_stripes=True,
                         cursor_type="row",
                     )
+            with TabPane("Get Values", id=f"pick-getval-{pid}"):
+                with Horizontal(classes="getval-conn-row"):
+                    yield Static("Base URL")
+                    yield Input(
+                        placeholder="https://api.sap.com/odata/v2",
+                        id=f"input-base-url-{pid}",
+                        classes="getval-url-input",
+                    )
+                yield Static("Auth Type", classes="getval-auth-label")
+                with RadioSet(id=f"auth-type-{pid}", classes="getval-auth-radio"):
+                    yield RadioButton("Basic", value=True)
+                    yield RadioButton("OAuth2")
+                with Horizontal(classes="getval-bar"):
+                    yield Button(
+                        "Configure Credentials",
+                        id=f"btn-configure-{pid}",
+                        variant="primary",
+                    )
+                    yield Button(
+                        "Fetch Values",
+                        id=f"btn-fetch-{pid}",
+                        variant="default",
+                    )
+                yield Static(
+                    "[dim]Not connected[/]",
+                    id=f"pick-getval-status-{pid}",
+                    classes="getval-status",
+                )
+                yield DataTable(
+                    id=f"pick-getval-table-{pid}",
+                    zebra_stripes=True,
+                    cursor_type="row",
+                )
 
     def on_mount(self) -> None:
-        """Render all three sub-tabs after mount."""
+        """Render all sub-tabs after mount."""
         self._render_overview()
         self._setup_entities_table()
         self._setup_impact_table()
+        self._prefill_connection()
+        self._update_connection_status()
+
+    # ── Get Values sub-tab ─────────────────────────────────────────
+
+    def _prefill_connection(self) -> None:
+        """Pre-fill Base URL and auth type from existing app.sap_connection."""
+        conn = getattr(self.app, "sap_connection", None)
+        if not conn:
+            return
+        pid = self.picklist_name
+        if conn.base_url:
+            self.query_one(f"#input-base-url-{pid}", Input).value = conn.base_url
+        if conn.auth_type == "oauth2":
+            try:
+                radio = self.query_one(f"#auth-type-{pid}", RadioSet)
+                # Select second radio button (OAuth2)
+                radio.query(RadioButton)[1].value = True
+            except Exception:
+                pass
+
+    def _get_auth_type(self) -> str:
+        """Read current auth type from the radio set."""
+        pid = self.picklist_name
+        radio = self.query_one(f"#auth-type-{pid}", RadioSet)
+        return "basic" if radio.pressed_index == 0 else "oauth2"
+
+    def _build_connection(self, creds: dict | None = None) -> "SAPConnection":
+        """Build a SAPConnection from the inline fields + optional modal creds."""
+        from ..sap_client import SAPConnection
+        pid = self.picklist_name
+        base_url = self.query_one(f"#input-base-url-{pid}", Input).value.strip()
+        auth_type = self._get_auth_type()
+
+        existing = getattr(self.app, "sap_connection", None)
+        # Start from existing creds if no new ones provided
+        kwargs = {}
+        if existing:
+            kwargs = {
+                "username": existing.username, "password": existing.password,
+                "idp_url": existing.idp_url, "token_url": existing.token_url,
+                "client_id": existing.client_id, "user_id": existing.user_id,
+                "company_id": existing.company_id, "private_key": existing.private_key,
+                "grant_type": existing.grant_type,
+            }
+        if creds:
+            kwargs.update(creds)
+
+        return SAPConnection(base_url=base_url, auth_type=auth_type, **kwargs)
+
+    def _update_connection_status(self) -> None:
+        """Update the Get Values status label based on app.sap_connection."""
+        status = self.query_one(f"#pick-getval-status-{self.picklist_name}", Static)
+        conn = getattr(self.app, "sap_connection", None)
+        if conn and conn.base_url:
+            status.update(f"Connected to [bold]{conn.base_url}[/]")
+        else:
+            status.update("[dim]Not connected[/]")
+
+    def _save_connection(self, conn) -> None:
+        """Persist connection to app state and .env file."""
+        self.app.sap_connection = conn
+        self._update_connection_status()
+
+        metadata_path = getattr(self.app, "metadata_path", None)
+        if metadata_path:
+            from ..sap_client import save_env_file
+            env_path = metadata_path.parent / f"{metadata_path.stem}.env"
+            save_env_file(env_path, conn)
+            self.app.notify(f"Saved credentials to {env_path.name}", timeout=3)
+
+    @on(Button.Pressed)
+    def _on_button_pressed(self, event: Button.Pressed) -> None:
+        """Handle Configure Credentials and Fetch Values buttons."""
+        pid = self.picklist_name
+        if event.button.id == f"btn-configure-{pid}":
+            self._open_auth_modal()
+        elif event.button.id == f"btn-fetch-{pid}":
+            self._fetch_values()
+
+    def _open_auth_modal(self) -> None:
+        """Open the credentials modal for the selected auth type."""
+        from .auth_modal import AuthModal
+
+        auth_type = self._get_auth_type()
+        conn = getattr(self.app, "sap_connection", None)
+        prefill = {}
+        if conn:
+            if auth_type == "basic":
+                prefill = {"username": conn.username, "password": conn.password}
+            else:
+                prefill = {
+                    "idp_url": conn.idp_url, "token_url": conn.token_url,
+                    "client_id": conn.client_id, "user_id": conn.user_id,
+                    "company_id": conn.company_id, "private_key": conn.private_key,
+                    "grant_type": conn.grant_type,
+                }
+
+        modal = AuthModal(auth_type, prefill)
+        self.app.push_screen(modal, self._on_auth_modal_dismiss)
+
+    def _on_auth_modal_dismiss(self, creds) -> None:
+        """Callback when the auth modal is dismissed."""
+        if creds is None:
+            return
+        conn = self._build_connection(creds)
+        self._save_connection(conn)
+
+    @work(thread=False)
+    async def _fetch_values(self) -> None:
+        """Fetch picklist values from the SAP API."""
+        pid = self.picklist_name
+        base_url = self.query_one(f"#input-base-url-{pid}", Input).value.strip()
+        if not base_url:
+            self.app.notify("Enter a Base URL first", severity="warning")
+            return
+
+        # Build connection from current inline fields + stored creds
+        conn = self._build_connection()
+        # Save so base_url / auth_type changes are persisted
+        self._save_connection(conn)
+
+        status = self.query_one(f"#pick-getval-status-{pid}", Static)
+        table = self.query_one(f"#pick-getval-table-{pid}", DataTable)
+
+        status.update("[dim]Fetching...[/]")
+
+        try:
+            from ..sap_client import SAPClient
+
+            client = SAPClient(conn)
+            await client.authenticate()
+            results = await client.get_picklist_values(self.picklist_name)
+            await client.close()
+
+            # Clear existing table
+            table.clear(columns=True)
+
+            if not results:
+                status.update(f"Connected to [bold]{conn.base_url}[/] — no values found")
+                return
+
+            # Build columns dynamically: ID, Code, then one per locale
+            locales = sorted({loc for item in results for loc in item["labels"]})
+            table.add_column("ID", width=8, key="id")
+            table.add_column("Code", width=10, key="code")
+            for loc in locales:
+                table.add_column(loc, width=18, key=f"label-{loc}")
+
+            for item in results:
+                table.add_row(
+                    item["id"],
+                    item["externalCode"],
+                    *[item["labels"].get(loc, "") for loc in locales],
+                )
+
+            status.update(
+                f"Connected to [bold]{conn.base_url}[/] — "
+                f"[bold]{len(results)}[/] values, [bold]{len(locales)}[/] locales"
+            )
+
+        except Exception as e:
+            status.update(f"[red]Error: {e}[/]")
 
     # ── Overview sub-tab ──────────────────────────────────────────
 

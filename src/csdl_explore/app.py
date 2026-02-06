@@ -5,6 +5,9 @@ A full terminal application with tree navigation, search, and Postman-style
 entity tabs.  Requires: pip install csdl-explore[tui]
 """
 
+from pathlib import Path
+from typing import Optional
+
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
@@ -15,6 +18,7 @@ from textual import events, on
 
 from .explorer import CSDLExplorer
 from .formatters import format_search_result_row
+from .sap_client import SAPConnection, load_env_file
 from .themes import ALL_THEMES, THEME_NAMES
 from .widgets import EntityTree, EntityTabPane, PicklistTabPane, SearchResults, FilterBar
 
@@ -110,6 +114,10 @@ class CSDLExplorerApp(App):
         scrollbar-color-hover: $primary 30%;
         scrollbar-color-active: $primary;
     }
+
+    Input {
+        scrollbar-size-horizontal: 0;
+    }
     """
 
     BINDINGS = [
@@ -135,9 +143,26 @@ class CSDLExplorerApp(App):
         self.sub_title = f"{explorer.entity_count} entities"
         self._table_filter: str = ""
 
+        # SAP connection state
+        self.metadata_path: Optional[Path] = explorer.metadata_path
+        self.sap_connection: Optional[SAPConnection] = None
+        self._load_env()
+
         for theme in ALL_THEMES:
             self.register_theme(theme)
         self.theme = "terminal-vercel-green"
+
+    def _load_env(self) -> None:
+        """Load SAP connection from .env file alongside metadata, if it exists."""
+        if not self.metadata_path:
+            return
+        env_path = self.metadata_path.parent / f"{self.metadata_path.stem}.env"
+        if env_path.exists():
+            try:
+                env_dict = load_env_file(env_path)
+                self.sap_connection = SAPConnection.from_env_dict(env_dict)
+            except Exception:
+                pass
 
     def compose(self) -> ComposeResult:
         yield Header()
