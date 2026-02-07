@@ -15,11 +15,15 @@ from rich.text import Text
 from rich.tree import Tree as RichTree
 from rich import box
 
+from pathlib import Path
+
 from ..explorer import CSDLExplorer
 from ..parser import EntityType
 from ..formatters import sort_properties, group_entity_properties, format_flag_check
 from ..themes import VERCEL_THEME
 from .results_viewer import ResultsViewer
+
+_CSS = (Path(__file__).parent / "entity_pane.tcss").read_text()
 
 
 class EntityTabPane(TabPane):
@@ -30,150 +34,7 @@ class EntityTabPane(TabPane):
         explorer: The CSDL explorer instance.
     """
 
-    DEFAULT_CSS = """
-    /* ── Details scroll ─────────────────────────────────── */
-    .detail-scroll {
-        height: 1fr;
-    }
-
-    .detail-scroll > Static {
-        height: auto;
-    }
-
-    /* ── Collapsible: remove content indent ──────────── */
-    Collapsible > Contents {
-        padding: 1 0 0 0;
-    }
-
-    /* ── Auth section ────────────────────────────────── */
-    .q-base-url {
-        width: 1fr;
-        margin: 0 1;
-    }
-
-    .q-spacer {
-        height: 1;
-    }
-
-    .q-auth-row {
-        height: 3;
-        padding: 0 1;
-    }
-
-    .q-auth-select {
-        width: 20;
-    }
-
-    .q-auth-row Button {
-        margin: 0 0 0 2;
-    }
-
-    /* ── Query builder ───────────────────────────────── */
-    .q-params-row {
-        height: auto;
-        max-height: 12;
-        padding: 0 1;
-        margin: 0 0 1 0;
-    }
-
-    .q-param-col {
-        width: 1fr;
-        height: auto;
-        max-height: 11;
-        padding: 0 1 0 0;
-    }
-
-    .q-section-label {
-        height: 1;
-        padding: 0 0 0 1;
-        text-style: bold;
-        color: $primary;
-    }
-
-    .q-hint {
-        height: 1;
-        padding: 0 0 0 1;
-        color: $text-muted;
-    }
-
-    .q-labels-row {
-        height: auto;
-        width: 1fr;
-    }
-
-    .q-labels-row .q-section-label {
-        width: 1fr;
-    }
-
-    .q-orderby-row {
-        height: 3;
-    }
-
-    .q-top-label {
-        width: 10;
-        height: 1;
-        padding: 0 0 0 1;
-        text-style: bold;
-        color: $primary;
-    }
-
-    .q-top-input {
-        width: 10;
-    }
-
-    .q-lists-spacer {
-        height: 1;
-    }
-
-    .q-lists-row {
-        height: auto;
-        max-height: 18;
-        padding: 0 1;
-    }
-
-    .q-list-col {
-        width: 1fr;
-        height: auto;
-        max-height: 17;
-        padding: 0 1 0 0;
-    }
-
-    .q-list-search {
-        height: 3;
-        margin: 0 0 1 0;
-    }
-
-    SelectionList {
-        width: 1fr;
-        height: auto;
-        max-height: 12;
-    }
-
-    /* ── URL bar ─────────────────────────────────────── */
-    .q-url-bar {
-        height: 3;
-        margin: 1 1 0 1;
-        width: 99.5%;
-    }
-
-    .q-url-input {
-        width: 1fr;
-    }
-
-    .q-btn-run {
-        width: 2;
-    }
-
-    .q-btn-copy {
-        width: auto;
-        min-width: 4;
-    }
-
-    /* ── Query builder scroll ─────────────────────────── */
-    .q-builder-scroll {
-        height: 1fr;
-    }
-    """
+    DEFAULT_CSS = _CSS
 
     def __init__(self, entity: EntityType, explorer: CSDLExplorer):
         pane_id = f"entity-{entity.name}"
