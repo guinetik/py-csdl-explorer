@@ -1,5 +1,7 @@
 """Results viewer widget — table, raw, and tree views of OData query responses."""
 
+import json
+
 from textual.containers import VerticalScroll, Horizontal
 from textual.widgets import Static, DataTable, TabbedContent, TabPane, Button
 from textual.widget import Widget
@@ -10,6 +12,13 @@ from rich.syntax import Syntax
 from rich.tree import Tree as RichTree
 
 from ..formatters import detect_syntax_lexer, detect_file_extension, build_tree_structure
+
+# Map Textual theme names to Rich Syntax themes.
+_SYNTAX_THEMES: dict[str, str] = {
+    "terminal-vercel-green": "monokai",
+    "classic": "dracula",
+}
+_DEFAULT_SYNTAX_THEME = "monokai"
 
 
 class ResultsViewer(Widget):
@@ -132,7 +141,14 @@ class ResultsViewer(Widget):
             entity_name: Entity set name (for save filename).
         """
         vid = self._viewer_id
-        self._raw_text = raw_text
+        # Store pretty-printed version for save/copy
+        if "json" in content_type.lower():
+            try:
+                self._raw_text = json.dumps(json.loads(raw_text), indent=2)
+            except (json.JSONDecodeError, ValueError):
+                self._raw_text = raw_text
+        else:
+            self._raw_text = raw_text
         self._content_type = content_type
         self._entity_name = entity_name
 
@@ -161,7 +177,9 @@ class ResultsViewer(Widget):
 
         # ── Raw tab ──────────────────────────────────────────
         lexer = detect_syntax_lexer(content_type)
-        syntax = Syntax(raw_text, lexer, theme="monokai", line_numbers=True)
+        app_theme = getattr(self.app, "theme", None) or ""
+        syntax_theme = _SYNTAX_THEMES.get(app_theme, _DEFAULT_SYNTAX_THEME)
+        syntax = Syntax(self._raw_text, lexer, theme=syntax_theme, line_numbers=True)
         raw_widget = self.query_one(f"#rv-raw-{vid}", Static)
         raw_widget.update(syntax)
 

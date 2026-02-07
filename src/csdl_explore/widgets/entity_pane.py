@@ -56,7 +56,7 @@ class EntityTabPane(TabPane):
     }
 
     .q-auth-row Button {
-        margin: 0 0 0 1;
+        margin: 0 0 0 2;
     }
 
     /* ── Query builder ───────────────────────────────── */
@@ -109,7 +109,7 @@ class EntityTabPane(TabPane):
     }
 
     .q-lists-row {
-        height: 24;
+        height: 16;
         padding: 0 1;
     }
 
@@ -124,6 +124,10 @@ class EntityTabPane(TabPane):
         margin: 0 0 1 0;
     }
 
+    SelectionList {
+        width: 1fr;
+    }
+
     /* ── URL bar ─────────────────────────────────────── */
     .q-url-bar {
         height: 3;
@@ -135,7 +139,7 @@ class EntityTabPane(TabPane):
     }
 
     .q-btn-run {
-        width: auto;
+        width: 2;
     }
 
     .q-btn-copy {

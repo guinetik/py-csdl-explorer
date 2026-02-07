@@ -40,7 +40,8 @@ class CSDLExplorerApp(App):
 
     #app-grid {
         layout: horizontal;
-        height: 100%;
+        height: 1fr;
+        width: 100%;
     }
 
     #sidebar {
@@ -59,7 +60,6 @@ class CSDLExplorerApp(App):
     #search-box {
         dock: top;
         height: 3;
-        padding: 0 1;
     }
 
     #entity-tree {
