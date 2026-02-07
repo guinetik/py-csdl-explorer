@@ -229,7 +229,7 @@ class SAPClient:
         self,
         entity_set: str,
         params: dict[str, str],
-    ) -> tuple[list[dict], str]:
+    ) -> tuple[list[dict], str, str, str]:
         """Execute an OData GET query against an entity set.
 
         Args:
@@ -237,7 +237,8 @@ class SAPClient:
             params: OData query parameters (``$select``, ``$filter``, etc.).
 
         Returns:
-            Tuple of (results list of dicts, full URL string for preview).
+            Tuple of (results list of dicts, full URL string, raw response
+            text, content-type header).
 
         Raises:
             RuntimeError: On HTTP errors.
@@ -252,10 +253,12 @@ class SAPClient:
             "GET", url, params=query, headers={"Accept": "application/json"},
         )
         full_url = str(resp.url)
+        raw_text = resp.text
+        content_type = resp.headers.get("content-type", "application/json")
 
         if resp.status_code >= 400:
             try:
-                body = resp.text[:500]
+                body = raw_text[:500]
             except Exception:
                 body = ""
             raise RuntimeError(
@@ -264,7 +267,7 @@ class SAPClient:
 
         data = resp.json()
         results = data.get("d", {}).get("results", [])
-        return results, full_url
+        return results, full_url, raw_text, content_type
 
     async def get_picklist_values(self, picklist_name: str) -> list[dict]:
         """Fetch picklist option values from the SAP OData API.

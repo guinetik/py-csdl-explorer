@@ -1,5 +1,7 @@
 """Entity tab pane — shows Details, Properties, and Query for a single entity."""
 
+from datetime import datetime
+
 from textual.containers import VerticalScroll, Horizontal, Vertical
 from textual.widgets import (
     Static, DataTable, TabbedContent, TabPane, Button, Input,
@@ -17,6 +19,7 @@ from ..explorer import CSDLExplorer
 from ..parser import EntityType
 from ..formatters import sort_properties, group_entity_properties, format_flag_check
 from ..themes import VERCEL_THEME
+from .results_viewer import ResultsViewer
 
 
 class EntityTabPane(TabPane):
@@ -140,10 +143,10 @@ class EntityTabPane(TabPane):
         min-width: 4;
     }
 
-    /* ── Results ─────────────────────────────────────── */
-    .q-status {
-        padding: 0 1;
-        height: 1;
+    /* ── Query builder scroll ─────────────────────────── */
+    .q-builder-scroll {
+        height: auto;
+        max-height: 70%;
     }
     """
 
@@ -177,151 +180,141 @@ class EntityTabPane(TabPane):
                     cursor_type="row",
                 )
             with TabPane("Query", id=f"query-{eid}"):
-                with VerticalScroll():
-                    yield from self._compose_query_tab()
+                yield from self._compose_query_tab()
 
     def _compose_query_tab(self):
         """Yield widgets for the Query sub-tab."""
         eid = self.entity.name
 
-        # ── Auth collapsible ──────────────────────────────────
-        with Collapsible(title="Auth", id=f"q-auth-section-{eid}"):
-            yield Static("Base URL", classes="q-section-label")
-            yield Input(
-                placeholder="https://api.sap.com/odata/v2",
-                id=f"q-base-url-{eid}",
-                classes="q-base-url",
-            )
-            yield Static(" ", classes="q-spacer")
-            with Horizontal(classes="q-auth-row"):
-                yield Select(
-                    [
-                        ("None", "none"),
-                        ("Bearer Token", "bearer"),
-                        ("Basic Auth", "basic"),
-                        ("OAuth2 SAML", "oauth2"),
-                    ],
-                    value="none",
-                    id=f"q-auth-type-{eid}",
-                    allow_blank=False,
-                    classes="q-auth-select",
+        with VerticalScroll(classes="q-builder-scroll"):
+            # ── Auth collapsible ──────────────────────────────────
+            with Collapsible(title="Auth", id=f"q-auth-section-{eid}"):
+                yield Static("Base URL", classes="q-section-label")
+                yield Input(
+                    placeholder="https://api.sap.com/odata/v2",
+                    id=f"q-base-url-{eid}",
+                    classes="q-base-url",
                 )
-                yield Button(
-                    "Configure Credentials",
-                    id=f"q-btn-configure-{eid}",
-                    variant="primary",
-                )
-
-        # ── Query collapsible ─────────────────────────────────
-        with Collapsible(title="Query", id=f"q-query-section-{eid}", collapsed=False):
-            # Row 1: $filter (left) + $orderby / $top (right)
-            with Horizontal(classes="q-params-row"):
-                with Vertical(classes="q-param-col"):
-                    yield Static("$filter", classes="q-section-label")
-                    yield Input(
-                        placeholder="e.g. startDate gt datetime'2024-01-01'",
-                        id=f"q-filter-{eid}",
+                yield Static(" ", classes="q-spacer")
+                with Horizontal(classes="q-auth-row"):
+                    yield Select(
+                        [
+                            ("None", "none"),
+                            ("Bearer Token", "bearer"),
+                            ("Basic Auth", "basic"),
+                            ("OAuth2 SAML", "oauth2"),
+                        ],
+                        value="none",
+                        id=f"q-auth-type-{eid}",
+                        allow_blank=False,
+                        classes="q-auth-select",
                     )
-                    filterable_names = [
-                        p.name for p in self.entity.properties.values() if p.filterable
-                    ]
-                    hint_text = ", ".join(filterable_names[:8])
-                    if len(filterable_names) > 8:
-                        hint_text += f" +{len(filterable_names) - 8} more"
-                    yield Static(f"Filterable: {hint_text}", classes="q-hint")
+                    yield Button(
+                        "Configure Credentials",
+                        id=f"q-btn-configure-{eid}",
+                        variant="primary",
+                    )
 
-                with Vertical(classes="q-param-col"):
-                    yield Static("$orderby", classes="q-section-label")
-                    sortable_props = [
-                        (p.name, p.name)
-                        for p in self.entity.properties.values() if p.sortable
-                    ]
-                    with Horizontal(classes="q-orderby-row"):
-                        yield Select(
-                            [("(none)", "")] + sortable_props,
-                            value="",
-                            id=f"q-orderby-prop-{eid}",
-                            allow_blank=False,
-                        )
-                        yield Select(
-                            [("asc", "asc"), ("desc", "desc")],
-                            value="asc",
-                            id=f"q-orderby-dir-{eid}",
-                            allow_blank=False,
-                        )
-                        yield Static("$top", classes="q-top-label")
+            # ── Query collapsible ─────────────────────────────────
+            with Collapsible(title="Query", id=f"q-query-section-{eid}", collapsed=False):
+                # Row 1: $filter (left) + $orderby / $top (right)
+                with Horizontal(classes="q-params-row"):
+                    with Vertical(classes="q-param-col"):
+                        yield Static("$filter", classes="q-section-label")
                         yield Input(
-                            value="20",
-                            id=f"q-top-{eid}",
-                            classes="q-top-input",
+                            placeholder="e.g. startDate gt datetime'2024-01-01'",
+                            id=f"q-filter-{eid}",
                         )
+                        filterable_names = [
+                            p.name for p in self.entity.properties.values() if p.filterable
+                        ]
+                        hint_text = ", ".join(filterable_names[:8])
+                        if len(filterable_names) > 8:
+                            hint_text += f" +{len(filterable_names) - 8} more"
+                        yield Static(f"Filterable: {hint_text}", classes="q-hint")
 
-            # Spacer between params and lists
-            yield Static(" ", classes="q-lists-spacer")
+                    with Vertical(classes="q-param-col"):
+                        yield Static("$orderby", classes="q-section-label")
+                        sortable_props = [
+                            (p.name, p.name)
+                            for p in self.entity.properties.values() if p.sortable
+                        ]
+                        with Horizontal(classes="q-orderby-row"):
+                            yield Select(
+                                [("(none)", "")] + sortable_props,
+                                value="",
+                                id=f"q-orderby-prop-{eid}",
+                                allow_blank=False,
+                            )
+                            yield Select(
+                                [("asc", "asc"), ("desc", "desc")],
+                                value="asc",
+                                id=f"q-orderby-dir-{eid}",
+                                allow_blank=False,
+                            )
+                            yield Static("$top", classes="q-top-label")
+                            yield Input(
+                                value="20",
+                                id=f"q-top-{eid}",
+                                classes="q-top-input",
+                            )
 
-            # Row 2: $select (left) + $expand (right)
-            with Horizontal(classes="q-lists-row"):
-                with Vertical(classes="q-list-col"):
-                    yield Static("$select", classes="q-section-label")
-                    yield Input(
-                        placeholder="Filter properties\u2026",
-                        id=f"q-select-search-{eid}",
-                        classes="q-list-search",
-                    )
-                    yield SelectionList[str](
-                        *self._select_items,
-                        id=f"q-select-{eid}",
-                    )
+                # Spacer between params and lists
+                yield Static(" ", classes="q-lists-spacer")
 
-                nav_props = list(self.entity.navigation.values())
-                with Vertical(classes="q-list-col"):
-                    yield Static("$expand", classes="q-section-label")
-                    if nav_props:
+                # Row 2: $select (left) + $expand (right)
+                with Horizontal(classes="q-lists-row"):
+                    with Vertical(classes="q-list-col"):
+                        yield Static("$select", classes="q-section-label")
                         yield Input(
-                            placeholder="Filter nav properties\u2026",
-                            id=f"q-expand-search-{eid}",
+                            placeholder="Filter properties\u2026",
+                            id=f"q-select-search-{eid}",
                             classes="q-list-search",
                         )
                         yield SelectionList[str](
-                            *self._expand_items,
-                            id=f"q-expand-{eid}",
+                            *self._select_items,
+                            id=f"q-select-{eid}",
                         )
-                    else:
-                        yield Static("[dim]No navigation properties[/]", classes="q-hint")
 
-            # URL bar: input + Run Query + copy emoji button
-            with Horizontal(classes="q-url-bar"):
-                yield Input(
-                    placeholder="URL preview",
-                    id=f"q-url-preview-{eid}",
-                    classes="q-url-input",
-                    disabled=True,
-                )
-                yield Button(
-                    "Run Query",
-                    id=f"q-btn-run-{eid}",
-                    variant="primary",
-                    classes="q-btn-run",
-                )
-                yield Button(
-                    "\U0001f4cb",
-                    id=f"q-btn-copy-{eid}",
-                    variant="default",
-                    classes="q-btn-copy",
-                )
+                    nav_props = list(self.entity.navigation.values())
+                    with Vertical(classes="q-list-col"):
+                        yield Static("$expand", classes="q-section-label")
+                        if nav_props:
+                            yield Input(
+                                placeholder="Filter nav properties\u2026",
+                                id=f"q-expand-search-{eid}",
+                                classes="q-list-search",
+                            )
+                            yield SelectionList[str](
+                                *self._expand_items,
+                                id=f"q-expand-{eid}",
+                            )
+                        else:
+                            yield Static("[dim]No navigation properties[/]", classes="q-hint")
 
-        # ── Results collapsible ───────────────────────────────
-        with Collapsible(title="Results", id=f"q-results-section-{eid}", collapsed=False):
-            yield Static(
-                "[dim]Not connected[/]",
-                id=f"q-status-{eid}",
-                classes="q-status",
-            )
-            yield DataTable(
-                id=f"q-results-{eid}",
-                zebra_stripes=True,
-                cursor_type="row",
-            )
+                # URL bar: input + Run Query + copy emoji button
+                with Horizontal(classes="q-url-bar"):
+                    yield Input(
+                        placeholder="URL preview",
+                        id=f"q-url-preview-{eid}",
+                        classes="q-url-input",
+                        disabled=True,
+                    )
+                    yield Button(
+                        "Run Query",
+                        id=f"q-btn-run-{eid}",
+                        variant="primary",
+                        classes="q-btn-run",
+                    )
+                    yield Button(
+                        "\U0001f4cb",
+                        id=f"q-btn-copy-{eid}",
+                        variant="default",
+                        classes="q-btn-copy",
+                    )
+
+        # ── Results — outside scroll so it fills remaining space ──
+        yield ResultsViewer(viewer_id=f"query-{eid}")
 
     def on_mount(self) -> None:
         """Render details and set up property table after mount."""
@@ -541,18 +534,8 @@ class EntityTabPane(TabPane):
         conn = self._build_query_connection()
         self.app.sap_connection = conn
 
-        status = self.query_one(f"#q-status-{eid}", Static)
-        table = self.query_one(f"#q-results-{eid}", DataTable)
-
-        status.update("[dim]Querying...[/]")
+        viewer = self.query_one(ResultsViewer)
         self.app.notify("Sending query\u2026", timeout=2)
-
-        # Auto-expand results section
-        try:
-            results_section = self.query_one(f"#q-results-section-{eid}", Collapsible)
-            results_section.collapsed = False
-        except Exception:
-            pass
 
         try:
             from ..sap_client import SAPClient
@@ -561,7 +544,7 @@ class EntityTabPane(TabPane):
             await client.authenticate()
 
             params = self._build_query_params()
-            results, full_url = await client.query_entity(eid, params)
+            results, full_url, raw_text, content_type = await client.query_entity(eid, params)
             await client.close()
 
             # Update URL preview with actual URL used
@@ -571,29 +554,17 @@ class EntityTabPane(TabPane):
             except Exception:
                 pass
 
-            # Populate results table
-            table.clear(columns=True)
+            viewer.update_results(results, full_url, raw_text, content_type, eid)
 
             if not results:
-                status.update(f"Connected to [bold]{conn.base_url}[/] \u2014 no results")
                 self.app.notify("Query returned no results", severity="warning", timeout=3)
-                return
-
-            # Build columns from first result's keys (skip __metadata)
-            columns = [k for k in results[0].keys() if k != "__metadata"]
-            for col in columns:
-                table.add_column(col, key=col)
-
-            for row in results:
-                table.add_row(*[str(row.get(col, "")) for col in columns])
-
-            status.update(
-                f"Connected to [bold]{conn.base_url}[/] \u2014 "
-                f"[bold]{len(results)}[/] results, [bold]{len(columns)}[/] columns"
-            )
-            self.app.notify(f"{len(results)} results, {len(columns)} columns", timeout=3)
+            else:
+                columns = [k for k in results[0].keys() if k != "__metadata"]
+                self.app.notify(f"{len(results)} results, {len(columns)} columns", timeout=3)
 
         except Exception as e:
+            vid = viewer._viewer_id
+            status = viewer.query_one(f"#rv-status-{vid}", Static)
             status.update(f"[red]Error: {e}[/]")
             self.app.notify(f"Query failed: {e}", severity="error", timeout=5)
 
@@ -620,6 +591,20 @@ class EntityTabPane(TabPane):
             self.app.notify("URL copied to clipboard", timeout=2)
         except Exception as e:
             self.app.notify(f"Copy failed: {e}", severity="warning")
+
+    @on(ResultsViewer.SaveRequested)
+    def _on_save_response(self, event: ResultsViewer.SaveRequested) -> None:
+        """Save the raw response to a file alongside the metadata XML."""
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{event.entity_name}_{timestamp}.{event.extension}"
+        metadata_path = getattr(self.app, "metadata_path", None)
+        if metadata_path:
+            save_path = metadata_path.parent / filename
+        else:
+            from pathlib import Path
+            save_path = Path.cwd() / filename
+        save_path.write_text(event.content, encoding="utf-8")
+        self.app.notify(f"Saved to {filename}", timeout=3)
 
     @on(SelectionList.SelectedChanged)
     def _on_selection_changed(self, event: SelectionList.SelectedChanged) -> None:

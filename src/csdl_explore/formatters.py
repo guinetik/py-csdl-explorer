@@ -138,3 +138,102 @@ def format_flag_check(val: bool) -> str:
         ``"\u2713"`` or ``""``.
     """
     return "\u2713" if val else ""
+
+
+def detect_syntax_lexer(content_type: str) -> str:
+    """Map a Content-Type header to a Rich Syntax lexer name.
+
+    Args:
+        content_type: HTTP Content-Type header value.
+
+    Returns:
+        Lexer name string (``"json"``, ``"xml"``, etc.).
+    """
+    ct = content_type.lower()
+    if "xml" in ct:
+        return "xml"
+    return "json"
+
+
+def detect_file_extension(content_type: str) -> str:
+    """Map a Content-Type header to a file extension.
+
+    Args:
+        content_type: HTTP Content-Type header value.
+
+    Returns:
+        File extension string without dot (``"json"`` or ``"xml"``).
+    """
+    ct = content_type.lower()
+    if "xml" in ct:
+        return "xml"
+    return "json"
+
+
+def build_tree_structure(data, max_depth: int = 10) -> list[tuple[str, str, list]]:
+    """Convert nested dicts/lists into a renderable tree structure.
+
+    Each node is a ``(label, type_hint, children)`` tuple where *children*
+    is a list of the same shape.  ``__metadata`` keys are skipped.
+    Lists are capped at 10 displayed items.
+
+    Args:
+        data: Parsed JSON data (dict, list, or primitive).
+        max_depth: Maximum recursion depth.
+
+    Returns:
+        List of ``(label, type_hint, children)`` tuples.
+    """
+
+    def _build(value, depth: int) -> list[tuple[str, str, list]]:
+        if depth <= 0:
+            return [("...", "max depth", [])]
+
+        if isinstance(value, dict):
+            nodes = []
+            for k, v in value.items():
+                if k == "__metadata":
+                    continue
+                children = _build(v, depth - 1)
+                type_hint = _type_hint(v)
+                nodes.append((str(k), type_hint, children))
+            return nodes
+
+        if isinstance(value, list):
+            nodes = []
+            shown = value[:10]
+            for i, item in enumerate(shown):
+                children = _build(item, depth - 1)
+                type_hint = _type_hint(item)
+                nodes.append((f"[{i}]", type_hint, children))
+            if len(value) > 10:
+                nodes.append((f"… {len(value) - 10} more", "", []))
+            return nodes
+
+        # Primitive leaf
+        return []
+
+    def _type_hint(value) -> str:
+        if isinstance(value, dict):
+            return "object"
+        if isinstance(value, list):
+            return f"array[{len(value)}]"
+        if value is None:
+            return "null"
+        return repr(value)
+
+    if isinstance(data, list):
+        root_nodes = []
+        shown = data[:10]
+        for i, item in enumerate(shown):
+            children = _build(item, max_depth - 1)
+            type_hint = _type_hint(item)
+            root_nodes.append((f"[{i}]", type_hint, children))
+        if len(data) > 10:
+            root_nodes.append((f"… {len(data) - 10} more", "", []))
+        return root_nodes
+
+    if isinstance(data, dict):
+        return _build(data, max_depth)
+
+    return [(_type_hint(data), "", [])]
