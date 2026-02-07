@@ -80,14 +80,7 @@ class EntityTree(Tree):
                 other_node.add_leaf(entity, data={"type": "entity", "name": entity})
 
         # ── Picklists branch ─────────────────────────────────────
-        picklists: dict[str, list[str]] = {}
-        for entity_name in all_entity_names:
-            entity = self.explorer.get_entity(entity_name)
-            if not entity:
-                continue
-            for prop in entity.properties.values():
-                if prop.picklist:
-                    picklists.setdefault(prop.picklist, []).append(entity_name)
+        picklists = self.explorer.get_picklist_usage()
 
         if picklists:
             pick_node = root.add(
