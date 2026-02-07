@@ -15,10 +15,10 @@ from ..formatters import detect_syntax_lexer, detect_file_extension, build_tree_
 
 # Map Textual theme names to Rich Syntax themes.
 _SYNTAX_THEMES: dict[str, str] = {
-    "terminal-vercel-green": "monokai",
+    "terminal-vercel-green": "github-dark",
     "classic": "dracula",
 }
-_DEFAULT_SYNTAX_THEME = "monokai"
+_DEFAULT_SYNTAX_THEME = "github-dark"
 
 
 class ResultsViewer(Widget):

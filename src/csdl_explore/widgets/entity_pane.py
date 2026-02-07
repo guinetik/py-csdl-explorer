@@ -31,9 +31,18 @@ class EntityTabPane(TabPane):
     """
 
     DEFAULT_CSS = """
+    /* ── Details scroll ─────────────────────────────────── */
+    .detail-scroll {
+        height: 1fr;
+    }
+
+    .detail-scroll > Static {
+        height: auto;
+    }
+
     /* ── Collapsible: remove content indent ──────────── */
     Collapsible > Contents {
-        padding: 0;
+        padding: 1 0 0 0;
     }
 
     /* ── Auth section ────────────────────────────────── */
@@ -87,15 +96,23 @@ class EntityTabPane(TabPane):
         color: $text-muted;
     }
 
+    .q-labels-row {
+        height: auto;
+        width: 1fr;
+    }
+
+    .q-labels-row .q-section-label {
+        width: 1fr;
+    }
+
     .q-orderby-row {
         height: 3;
     }
 
     .q-top-label {
-        width: auto;
-        height: 3;
-        content-align-vertical: middle;
-        padding: 0 1;
+        width: 10;
+        height: 1;
+        padding: 0 0 0 1;
         text-style: bold;
         color: $primary;
     }
@@ -109,13 +126,15 @@ class EntityTabPane(TabPane):
     }
 
     .q-lists-row {
-        height: 16;
+        height: auto;
+        max-height: 18;
         padding: 0 1;
     }
 
     .q-list-col {
         width: 1fr;
-        height: 100%;
+        height: auto;
+        max-height: 17;
         padding: 0 1 0 0;
     }
 
@@ -126,12 +145,15 @@ class EntityTabPane(TabPane):
 
     SelectionList {
         width: 1fr;
+        height: auto;
+        max-height: 12;
     }
 
     /* ── URL bar ─────────────────────────────────────── */
     .q-url-bar {
         height: 3;
         margin: 1 1 0 1;
+        width: 99.5%;
     }
 
     .q-url-input {
@@ -149,8 +171,7 @@ class EntityTabPane(TabPane):
 
     /* ── Query builder scroll ─────────────────────────── */
     .q-builder-scroll {
-        height: auto;
-        max-height: 70%;
+        height: 1fr;
     }
     """
 
@@ -175,8 +196,9 @@ class EntityTabPane(TabPane):
         eid = self.entity.name
         with TabbedContent(id=f"sub-tabs-{eid}"):
             with TabPane("Details", id=f"detail-{eid}"):
-                with VerticalScroll():
-                    yield Static(id=f"details-{eid}")
+                with VerticalScroll(classes="detail-scroll"):
+                    yield Static(id=f"details-header-{eid}")
+                    yield Static(id=f"details-tree-{eid}")
             with TabPane("Properties", id=f"props-{eid}"):
                 yield DataTable(
                     id=f"prop-table-{eid}",
@@ -238,7 +260,9 @@ class EntityTabPane(TabPane):
                         yield Static(f"Filterable: {hint_text}", classes="q-hint")
 
                     with Vertical(classes="q-param-col"):
-                        yield Static("$orderby", classes="q-section-label")
+                        with Horizontal(classes="q-labels-row"):
+                            yield Static("$orderby", classes="q-section-label")
+                            yield Static("$top", classes="q-top-label")
                         sortable_props = [
                             (p.name, p.name)
                             for p in self.entity.properties.values() if p.sortable
@@ -256,7 +280,6 @@ class EntityTabPane(TabPane):
                                 id=f"q-orderby-dir-{eid}",
                                 allow_blank=False,
                             )
-                            yield Static("$top", classes="q-top-label")
                             yield Input(
                                 value="20",
                                 id=f"q-top-{eid}",
@@ -311,14 +334,15 @@ class EntityTabPane(TabPane):
                         classes="q-btn-run",
                     )
                     yield Button(
-                        "\U0001f4cb",
+                        "\uf0c5",
                         id=f"q-btn-copy-{eid}",
                         variant="default",
                         classes="q-btn-copy",
                     )
 
-        # ── Results — outside scroll so it fills remaining space ──
-        yield ResultsViewer(viewer_id=f"query-{eid}")
+            # ── Results collapsible ──────────────────────────────────
+            with Collapsible(title="Results", id=f"q-results-section-{eid}", collapsed=False):
+                yield ResultsViewer(viewer_id=f"query-{eid}")
 
     def on_mount(self) -> None:
         """Render details and set up property table after mount."""
@@ -645,7 +669,8 @@ class EntityTabPane(TabPane):
         ac = VERCEL_THEME.accent
         sc = VERCEL_THEME.success
 
-        details_widget = self.query_one(f"#details-{entity.name}", Static)
+        header_widget = self.query_one(f"#details-header-{entity.name}", Static)
+        tree_widget = self.query_one(f"#details-tree-{entity.name}", Static)
 
         header_text = f"[bold {pc}]{entity.name}[/]"
         if entity.base_type:
@@ -656,6 +681,14 @@ class EntityTabPane(TabPane):
         custom_count = len(entity.custom_fields)
         nav_count = len(entity.navigation)
 
+        summary = Text.from_markup(
+            f"  [bold]{len(entity.properties)}[/] properties"
+            f"  |  [bold]{custom_count}[/] custom fields"
+            f"  |  [bold]{nav_count}[/] navigation\n"
+        )
+
+        header_widget.update(Group(panel, summary))
+
         groups = group_entity_properties(entity)
         rtree = RichTree(f"[bold {pc}]{entity.name}[/]")
 
@@ -664,30 +697,21 @@ class EntityTabPane(TabPane):
             for prop in groups["keys"]:
                 keys_branch.add(f"[{pc}]{prop.name}[/] [dim]{prop.type}[/]")
 
-        if groups["other_nav"]:
+        all_nav = list(entity.navigation.values())
+        if all_nav:
             nav_branch = rtree.add(f"[blue]Navigation[/] ({nav_count})")
-            for nav in groups["other_nav"][:15]:
+            for nav in sorted(all_nav, key=lambda n: n.name):
                 target = nav.target_entity or "?"
                 nav_branch.add(f"[{pc}]{nav.name}[/] -> [{sc}]{target}[/]")
-            if len(groups["other_nav"]) > 15:
-                nav_branch.add(f"[dim]... and {len(groups['other_nav']) - 15} more[/]")
 
         if groups["custom"]:
             custom_branch = rtree.add(f"[{ac}]Custom Fields[/] ({custom_count})")
-            for prop in groups["custom"][:10]:
+            for prop in groups["custom"]:
                 label_hint = f' [dim]"{prop.label}"[/]' if prop.label else ""
                 pick_hint = f' [magenta]{prop.picklist}[/]' if prop.picklist else ""
                 custom_branch.add(f"[{pc}]{prop.name}[/] {prop.type}{label_hint}{pick_hint}")
-            if custom_count > 10:
-                custom_branch.add(f"[dim]... and {custom_count - 10} more[/]")
 
-        summary = Text.from_markup(
-            f"  [bold]{len(entity.properties)}[/] properties"
-            f"  |  [bold]{custom_count}[/] custom fields"
-            f"  |  [bold]{nav_count}[/] navigation\n"
-        )
-
-        details_widget.update(Group(panel, summary, rtree))
+        tree_widget.update(rtree)
 
     # ── Properties sub-tab ────────────────────────────────────────
 
