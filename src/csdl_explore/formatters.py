@@ -237,3 +237,137 @@ def build_tree_structure(data, max_depth: int = 10) -> list[tuple[str, str, list
         return _build(data, max_depth)
 
     return [(_type_hint(data), "", [])]
+
+
+def fuzzy_match(pattern: str, text: str) -> bool:
+    """Check if all characters in *pattern* appear in order in *text*.
+
+    Args:
+        pattern: Lowercase search pattern.
+        text: Lowercase text to match against.
+
+    Returns:
+        ``True`` if every character of *pattern* appears sequentially in *text*.
+    """
+    it = iter(text)
+    return all(c in it for c in pattern)
+
+
+def build_odata_url(base_url: str, entity_name: str, params: dict[str, str]) -> str:
+    """Build an OData URL from base URL, entity name, and query params.
+
+    Always appends ``$format=json`` unless already present.
+
+    Args:
+        base_url: API base URL (trailing slash stripped).
+        entity_name: OData entity set name.
+        params: Query parameters dict.
+
+    Returns:
+        Full URL string.
+    """
+    if not base_url:
+        base_url = "https://api.sap.com/odata/v2"
+    params_with_format = dict(params)
+    params_with_format.setdefault("$format", "json")
+    param_str = "&".join(f"{k}={v}" for k, v in params_with_format.items())
+    return f"{base_url.rstrip('/')}/{entity_name}?{param_str}"
+
+
+def build_odata_query_params(
+    *,
+    selected: list[str],
+    filter_expr: str,
+    orderby_prop: str,
+    orderby_dir: str,
+    expanded: list[str],
+    top: str,
+) -> dict[str, str]:
+    """Build OData query parameters from individual field values.
+
+    Only includes parameters that have non-empty values.
+
+    Args:
+        selected: List of selected property names for ``$select``.
+        filter_expr: Raw ``$filter`` expression.
+        orderby_prop: Property name for ``$orderby``.
+        orderby_dir: Sort direction (``"asc"`` or ``"desc"``).
+        expanded: List of navigation property names for ``$expand``.
+        top: Number of results to return.
+
+    Returns:
+        Dict of OData query parameter names to values.
+    """
+    params: dict[str, str] = {}
+    if selected:
+        params["$select"] = ",".join(selected)
+    if filter_expr:
+        params["$filter"] = filter_expr
+    if orderby_prop:
+        params["$orderby"] = f"{orderby_prop} {orderby_dir}"
+    if expanded:
+        params["$expand"] = ",".join(expanded)
+    params["$top"] = top or "20"
+    return params
+
+
+def format_property_table_row(
+    prop: Property,
+    *,
+    keys: list[str],
+    accent_color: str,
+) -> tuple:
+    """Format a property into a 12-column table row tuple.
+
+    Args:
+        prop: The property to format.
+        keys: Entity key property names.
+        accent_color: Hex color for key name markup.
+
+    Returns:
+        12-element tuple of display strings.
+    """
+    is_key = prop.name in keys
+    return (
+        f"[{accent_color}]{prop.name}[/]" if is_key else prop.name,
+        prop.type,
+        prop.max_length or "",
+        prop.label or "",
+        prop.picklist or "",
+        format_flag_check(prop.required or is_key),
+        format_flag_check(prop.creatable),
+        format_flag_check(prop.updatable),
+        format_flag_check(prop.upsertable),
+        format_flag_check(prop.visible),
+        format_flag_check(prop.sortable),
+        format_flag_check(prop.filterable),
+    )
+
+
+def compute_picklist_impact(
+    picklist_data: dict[str, list[Property]],
+) -> dict:
+    """Compute impact analysis stats for a picklist.
+
+    Args:
+        picklist_data: Mapping of entity name to list of properties using the picklist.
+
+    Returns:
+        Dict with ``required_count``, ``create_entity_count``,
+        ``required_props`` (list of (entity, prop) tuples),
+        ``create_entities`` (set of entity names).
+    """
+    required_props = []
+    create_entities = set()
+    for entity_name, props in picklist_data.items():
+        for prop in props:
+            if prop.required:
+                required_props.append((entity_name, prop))
+            if prop.creatable:
+                create_entities.add(entity_name)
+    return {
+        "required_count": len(required_props),
+        "create_entity_count": len(create_entities),
+        "required_props": required_props,
+        "create_entities": create_entities,
+    }

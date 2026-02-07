@@ -311,6 +311,19 @@ class CSDLExplorer:
         """Get all Per* (person-related) entities."""
         return self.list_entities(r'^Per')
 
+    def get_picklist_usage(self) -> dict[str, list[str]]:
+        """Map picklist names to the entities that reference them.
+
+        Returns:
+            Dict mapping each picklist name to a sorted list of entity names.
+        """
+        picklists: dict[str, list[str]] = {}
+        for entity_name, entity in self.entities.items():
+            for prop in entity.properties.values():
+                if prop.picklist:
+                    picklists.setdefault(prop.picklist, []).append(entity_name)
+        return {k: sorted(v) for k, v in sorted(picklists.items())}
+
     @property
     def entity_count(self) -> int:
         """Number of entities in metadata."""
