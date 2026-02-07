@@ -35,6 +35,14 @@ class EntityTabPane(TabPane):
             yield PropertiesTab(self.entity, tab_id=f"props-{eid}")
             yield QueryTab(self.entity, tab_id=f"query-{eid}")
 
+    @property
+    def _table_filter(self) -> str:
+        """Current filter term from PropertiesTab."""
+        try:
+            return self.query_one(PropertiesTab)._table_filter
+        except Exception:
+            return ""
+
     def apply_filter(self, term: str) -> tuple[int, int]:
         """Delegate filter to PropertiesTab.
 
