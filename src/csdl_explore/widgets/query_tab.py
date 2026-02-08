@@ -35,9 +35,11 @@ class QueryTab(TabPane):
     def compose(self):
         eid = self._entity.name
         with VerticalScroll(classes="q-builder-scroll"):
-            yield ConnectionPanel(panel_id=eid)
-            yield QueryBuilder(self._entity, builder_id=eid)
-            with Collapsible(title="Results", id=f"q-results-section-{eid}", collapsed=False):
+            with Collapsible(title="Auth", id=f"cp-section-{eid}", collapsed=True):
+                yield ConnectionPanel(panel_id=eid)
+            with Collapsible(title="Query", id=f"qb-section-{eid}", collapsed=False):
+                yield QueryBuilder(self._entity, builder_id=eid)
+            with Collapsible(title="Results", id=f"q-results-section-{eid}", collapsed=True):
                 yield ResultsViewer(viewer_id=f"query-{eid}")
 
     def on_mount(self) -> None:
@@ -48,9 +50,11 @@ class QueryTab(TabPane):
 
     @on(ConnectionPanel.ConnectionChanged)
     def _on_connection_changed(self, event: ConnectionPanel.ConnectionChanged) -> None:
-        """Update URL preview when connection changes."""
+        """Update URL preview and collapse auth when connection changes."""
         qb = self.query_one(QueryBuilder)
         qb.update_url_preview(event.connection.base_url)
+        eid = self._entity.name
+        self.query_one(f"#cp-section-{eid}", Collapsible).collapsed = True
 
     @on(Input.Changed, "ConnectionPanel Input")
     def _on_base_url_changed(self, event: Input.Changed) -> None:
@@ -98,6 +102,10 @@ class QueryTab(TabPane):
 
             qb.set_url_preview(full_url)
             viewer.update_results(results, full_url, raw_text, content_type, eid)
+
+            # Collapse query, expand results
+            self.query_one(f"#qb-section-{eid}", Collapsible).collapsed = True
+            self.query_one(f"#q-results-section-{eid}", Collapsible).collapsed = False
 
             if not results:
                 self.app.notify("Query returned no results", severity="warning", timeout=3)

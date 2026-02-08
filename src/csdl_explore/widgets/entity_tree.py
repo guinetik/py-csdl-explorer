@@ -22,6 +22,7 @@ class EntityTree(Tree):
         """
         super().__init__("CSDL Metadata", **kwargs)
         self.explorer = explorer
+        self._filter_term = ""
         self._build_tree()
 
     def _build_tree(self):
@@ -38,12 +39,21 @@ class EntityTree(Tree):
 
         # ── Entities branch ──────────────────────────────────────
         all_entity_names = self.explorer.list_entities()
+
+        # Apply filter if set
+        if self._filter_term:
+            filter_lower = self._filter_term.lower()
+            all_entity_names = [
+                name for name in all_entity_names
+                if filter_lower in name.lower()
+            ]
+
         entities_node = root.add(
             f"[{pc}]Entities[/] ({len(all_entity_names)})", expand=True
         )
 
-        emp_entities = self.explorer.get_emp_entities()
-        per_entities = self.explorer.get_per_entities()
+        emp_entities = [e for e in self.explorer.get_emp_entities() if e in all_entity_names]
+        per_entities = [e for e in self.explorer.get_per_entities() if e in all_entity_names]
         other_entities = sorted(
             set(all_entity_names) - set(emp_entities) - set(per_entities)
         )
@@ -82,6 +92,15 @@ class EntityTree(Tree):
         # ── Picklists branch ─────────────────────────────────────
         picklists = self.explorer.get_picklist_usage()
 
+        # Apply filter if set
+        if self._filter_term:
+            filter_lower = self._filter_term.lower()
+            picklists = {
+                name: entities
+                for name, entities in picklists.items()
+                if filter_lower in name.lower()
+            }
+
         if picklists:
             pick_node = root.add(
                 f"[{wc}]Picklists[/] ({len(picklists)})", expand=False
@@ -92,3 +111,28 @@ class EntityTree(Tree):
                     f"{name} [dim]({count} entities)[/]",
                     data={"type": "picklist", "name": name, "entities": picklists[name]},
                 )
+
+    def filter_tree(self, term: str) -> int:
+        """Filter the tree to show only matching entities and picklists.
+
+        Args:
+            term: Search term to filter by (case-insensitive).
+
+        Returns:
+            Number of matching items (entities + picklists).
+        """
+        self._filter_term = term
+        self.clear()
+        self._build_tree()
+
+        # Count leaf nodes (entities and picklists)
+        count = 0
+        for node in self.root.children:
+            count += self._count_leaves(node)
+        return count
+
+    def _count_leaves(self, node) -> int:
+        """Recursively count leaf nodes."""
+        if not node.children:
+            return 1 if node.data else 0
+        return sum(self._count_leaves(child) for child in node.children)

@@ -1,11 +1,17 @@
 """Picklist Impact Analysis sub-tab — shows required properties and affected entities."""
 
+import re
 from textual.containers import VerticalScroll
 from textual.widgets import Static, DataTable, TabPane
 
 from ..parser import Property
 from ..formatters import format_flag_check, compute_picklist_impact
 from ..themes import VERCEL_THEME
+
+
+def _sanitize_id(name: str) -> str:
+    """Sanitize name for widget ID."""
+    return re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9_-]', '-', name)).strip('-')
 
 
 class PicklistImpactTab(TabPane):
@@ -26,9 +32,9 @@ class PicklistImpactTab(TabPane):
 
     def compose(self):
         with VerticalScroll():
-            yield Static(id=f"pick-impact-summary-{self._picklist_name}")
+            yield Static(id=f"pick-impact-summary-{_sanitize_id(self._picklist_name)}")
             yield DataTable(
-                id=f"pick-impact-table-{self._picklist_name}",
+                id=f"pick-impact-table-{_sanitize_id(self._picklist_name)}",
                 zebra_stripes=True,
                 cursor_type="row",
             )
@@ -46,9 +52,9 @@ class PicklistImpactTab(TabPane):
             f"  [{wc}]{impact['required_count']}[/] required properties — "
             f"changes affect create operations on [{wc}]{impact['create_entity_count']}[/] entities\n"
         )
-        self.query_one(f"#pick-impact-summary-{self._picklist_name}", Static).update(summary_text)
+        self.query_one(f"#pick-impact-summary-{_sanitize_id(self._picklist_name)}", Static).update(summary_text)
 
-        table = self.query_one(f"#pick-impact-table-{self._picklist_name}", DataTable)
+        table = self.query_one(f"#pick-impact-table-{_sanitize_id(self._picklist_name)}", DataTable)
         table.add_column("Entity", width=25, key="entity")
         table.add_column("Property", width=20, key="property")
         table.add_column("Req", width=3, key="req")

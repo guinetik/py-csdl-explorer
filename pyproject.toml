@@ -33,7 +33,7 @@ dev = [
     "pytest>=7.0.0",
 ]
 tui = [
-    "textual>=0.40.0",
+    "textual[syntax]>=0.40.0",
 ]
 
 [project.scripts]

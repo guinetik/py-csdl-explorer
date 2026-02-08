@@ -3,7 +3,8 @@
 from pathlib import Path
 
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Static, Input, Select, SelectionList, Button, Collapsible
+from textual.widgets import Static, Input, Select, SelectionList, Button
+from textual.suggester import Suggester
 from textual.message import Message
 from textual import on
 
@@ -13,7 +14,72 @@ from ..formatters import sort_properties, build_odata_url, build_odata_query_par
 _CSS = (Path(__file__).parent / "query_builder.tcss").read_text()
 
 
-class QueryBuilder(Collapsible):
+class FilterSuggester(Suggester):
+    """Suggester for OData $filter expressions — suggests property names.
+
+    Args:
+        property_names: List of valid property names to suggest.
+    """
+
+    def __init__(self, property_names: list[str]) -> None:
+        super().__init__(use_cache=False, case_sensitive=False)
+        self._property_names = property_names
+
+    async def get_suggestion(self, value: str) -> str | None:
+        """Get suggestion for the current filter input value.
+
+        Extracts the last word being typed and suggests matching property names.
+
+        Args:
+            value: Current input value.
+
+        Returns:
+            Suggestion string or None.
+        """
+        if not value:
+            return None
+
+        # Extract the last word (after spaces, operators, quotes, parens)
+        import re
+        # Split on common OData operators and delimiters
+        parts = re.split(r"[\s()'\",]", value)
+        last_word = parts[-1] if parts else ""
+
+        if not last_word:
+            return None
+
+        # Find first matching property (case-insensitive prefix match)
+        last_word_lower = last_word.lower()
+        for prop_name in self._property_names:
+            if prop_name.lower().startswith(last_word_lower):
+                # Build suggestion by replacing the last word with the full property name
+                prefix = value[:-len(last_word)]
+                return prefix + prop_name
+
+        return None
+
+
+class FilterInput(Input):
+    """Custom Input that uses Tab to accept suggestions."""
+
+    def __init__(self, *args, **kwargs):
+        self._filter_suggester = kwargs.pop('filter_suggester', None)
+        super().__init__(*args, **kwargs)
+
+    async def on_key(self, event) -> None:
+        """Intercept Tab to accept suggestions."""
+        if event.key == "tab" and self._filter_suggester:
+            suggestion = await self._filter_suggester.get_suggestion(self.value)
+            if suggestion and suggestion != self.value:
+                self.value = suggestion
+                self.cursor_position = len(suggestion)
+                event.prevent_default()
+                event.stop()
+                return
+        await super().on_key(event)
+
+
+class QueryBuilder(Vertical):
     """Query parameter builder with URL preview and run/copy buttons.
 
     Posts ``QueryBuilder.RunRequested`` when the Run Query button is clicked.
@@ -42,7 +108,7 @@ class QueryBuilder(Collapsible):
             self.url = url
 
     def __init__(self, entity: EntityType, builder_id: str) -> None:
-        super().__init__(title="Query", id=f"qb-section-{builder_id}", collapsed=False)
+        super().__init__(id=f"qb-panel-{builder_id}")
         self._entity = entity
         self._builder_id = builder_id
         self._select_items: list[tuple[str, str, bool]] = [
@@ -53,6 +119,10 @@ class QueryBuilder(Collapsible):
             (nav.name, nav.name, False)
             for nav in entity.navigation.values()
         ]
+        # Create filter suggester with all property names (prioritize filterable)
+        filterable_props = [p.name for p in entity.properties.values() if p.filterable]
+        other_props = [p.name for p in entity.properties.values() if not p.filterable]
+        self._filter_suggester = FilterSuggester(filterable_props + other_props)
 
     def compose(self):
         bid = self._builder_id
@@ -62,9 +132,11 @@ class QueryBuilder(Collapsible):
         with Horizontal(classes="q-params-row"):
             with Vertical(classes="q-param-col"):
                 yield Static("$filter", classes="q-section-label")
-                yield Input(
+                yield FilterInput(
                     placeholder="e.g. startDate gt datetime'2024-01-01'",
                     id=f"qb-filter-{bid}",
+                    suggester=self._filter_suggester,
+                    filter_suggester=self._filter_suggester,
                 )
                 filterable_names = [
                     p.name for p in entity.properties.values() if p.filterable
@@ -100,6 +172,33 @@ class QueryBuilder(Collapsible):
                         id=f"qb-top-{bid}",
                         classes="q-top-input",
                     )
+
+        # Row 1.5: Date parameters (mutually exclusive)
+        with Horizontal(classes="q-dates-row"):
+            with Vertical(classes="q-param-col"):
+                yield Static("$asOfDate", classes="q-section-label")
+                yield Input(
+                    placeholder="YYYY-MM-DD or datetime'...'",
+                    id=f"qb-asof-{bid}",
+                )
+                yield Static("[dim]Point-in-time query (exclusive with date range)[/]", classes="q-hint")
+
+            with Vertical(classes="q-param-col"):
+                with Horizontal(classes="q-labels-row"):
+                    yield Static("$fromDate", classes="q-section-label")
+                    yield Static("$toDate", classes="q-section-label")
+                with Horizontal(classes="q-dates-inputs"):
+                    yield Input(
+                        placeholder="YYYY-MM-DD",
+                        id=f"qb-from-{bid}",
+                        classes="q-date-input",
+                    )
+                    yield Input(
+                        placeholder="YYYY-MM-DD",
+                        id=f"qb-to-{bid}",
+                        classes="q-date-input",
+                    )
+                yield Static("[dim]Date range (exclusive with as-of date)[/]", classes="q-hint")
 
         # Spacer between params and lists
         yield Static(" ", classes="q-lists-spacer")
@@ -201,6 +300,16 @@ class QueryBuilder(Collapsible):
         except Exception:
             pass
 
+        asof_date = ""
+        from_date = ""
+        to_date = ""
+        try:
+            asof_date = self.query_one(f"#qb-asof-{bid}", Input).value.strip()
+            from_date = self.query_one(f"#qb-from-{bid}", Input).value.strip()
+            to_date = self.query_one(f"#qb-to-{bid}", Input).value.strip()
+        except Exception:
+            pass
+
         return build_odata_query_params(
             selected=selected,
             filter_expr=filter_expr,
@@ -208,6 +317,9 @@ class QueryBuilder(Collapsible):
             orderby_dir=orderby_dir,
             expanded=expanded,
             top=self._get_top_value(),
+            asof_date=asof_date,
+            from_date=from_date,
+            to_date=to_date,
         )
 
     def update_url_preview(self, base_url: str) -> None:
@@ -289,7 +401,7 @@ class QueryBuilder(Collapsible):
         """Update URL preview or filter selection lists on input change."""
         bid = self._builder_id
         input_id = event.input.id or ""
-        if input_id in (f"qb-filter-{bid}", f"qb-top-{bid}"):
+        if input_id in (f"qb-filter-{bid}", f"qb-top-{bid}", f"qb-asof-{bid}", f"qb-from-{bid}", f"qb-to-{bid}"):
             try:
                 from .connection_panel import ConnectionPanel
                 cp = self.screen.query_one(ConnectionPanel)

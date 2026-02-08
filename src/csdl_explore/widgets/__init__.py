@@ -16,12 +16,15 @@ from .picklist_overview_tab import PicklistOverviewTab
 from .picklist_entities_tab import PicklistEntitiesTab
 from .picklist_impact_tab import PicklistImpactTab
 from .picklist_values_tab import PicklistValuesTab
+from .filterable_table import FilterableDataTable
+from .json_viewer_modal import JsonViewerModal
 
 __all__ = [
     "EntityTree", "EntityTabPane", "PicklistTabPane",
     "SearchResults", "FilterBar", "AuthModal", "ResultsViewer",
-    "ConnectionPanel", "QueryBuilder",
+    "ConnectionPanel", "QueryBuilder", "FilterableDataTable",
     "DetailsTab", "PropertiesTab", "QueryTab",
     "PicklistOverviewTab", "PicklistEntitiesTab",
     "PicklistImpactTab", "PicklistValuesTab",
+    "JsonViewerModal",
 ]

@@ -1,5 +1,6 @@
 """Picklist Overview sub-tab — summary panel and entity/property tree."""
 
+import re
 from textual.containers import VerticalScroll
 from textual.widgets import Static, TabPane
 
@@ -10,6 +11,11 @@ from rich import box
 
 from ..parser import Property
 from ..themes import VERCEL_THEME
+
+
+def _sanitize_id(name: str) -> str:
+    """Sanitize name for widget ID."""
+    return re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9_-]', '-', name)).strip('-')
 
 
 class PicklistOverviewTab(TabPane):
@@ -30,13 +36,13 @@ class PicklistOverviewTab(TabPane):
 
     def compose(self):
         with VerticalScroll():
-            yield Static(id=f"pick-details-{self._picklist_name}")
+            yield Static(id=f"pick-details-{_sanitize_id(self._picklist_name)}")
 
     def on_mount(self) -> None:
-        """Render overview content."""
-        self._render()
+        """Populate overview content."""
+        self._populate()
 
-    def _render(self) -> None:
+    def _populate(self) -> None:
         """Populate panel and Rich tree."""
         wc = VERCEL_THEME.warning
         pc = VERCEL_THEME.primary
@@ -56,5 +62,5 @@ class PicklistOverviewTab(TabPane):
                 label_hint = f' "{prop.label}"' if prop.label else ""
                 branch.add(f"{prop.name} [dim]{prop.type}{label_hint}[/]")
 
-        widget = self.query_one(f"#pick-details-{self._picklist_name}", Static)
+        widget = self.query_one(f"#pick-details-{_sanitize_id(self._picklist_name)}", Static)
         widget.update(Group(panel, summary, rtree))

@@ -42,10 +42,10 @@ class DetailsTab(TabPane):
             yield Static(id=f"details-tree-{self._entity.name}")
 
     def on_mount(self) -> None:
-        """Render details content after mount."""
-        self._render()
+        """Populate details content after mount."""
+        self._populate()
 
-    def _render(self) -> None:
+    def _populate(self) -> None:
         """Populate header panel and property tree."""
         entity = self._entity
         pc = VERCEL_THEME.primary
@@ -79,6 +79,18 @@ class DetailsTab(TabPane):
             keys_branch = rtree.add(f"[{ac}]Keys[/]")
             for prop in groups["keys"]:
                 keys_branch.add(f"[{pc}]{prop.name}[/] [dim]{prop.type}[/]")
+
+        if groups["standard"]:
+            standard_branch = rtree.add(f"[{pc}]Standard Properties[/] ({len(groups['standard'])})")
+            for prop in groups["standard"]:
+                label_hint = f' [dim]"{prop.label}"[/]' if prop.label else ""
+                pick_hint = f' [magenta]{prop.picklist}[/]' if prop.picklist else ""
+                standard_branch.add(f"[{pc}]{prop.name}[/] {prop.type}{label_hint}{pick_hint}")
+
+        if groups["lookups"]:
+            lookup_branch = rtree.add(f"[{sc}]Lookup Properties[/] ({len(groups['lookups'])})")
+            for prop, nav_name, target in groups["lookups"]:
+                lookup_branch.add(f"[{pc}]{prop.name}[/] -> [{sc}]{target}[/] [dim]via {nav_name}[/]")
 
         all_nav = list(entity.navigation.values())
         if all_nav:

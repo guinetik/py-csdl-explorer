@@ -5,6 +5,7 @@ A full terminal application with tree navigation, search, and Postman-style
 entity tabs.  Requires: pip install csdl-explore[tui]
 """
 
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -25,6 +26,11 @@ from .widgets import EntityTree, EntityTabPane, PicklistTabPane, SearchResults, 
 MAX_TABS = 15
 
 
+def _sanitize_id(name: str) -> str:
+    """Sanitize name for widget ID."""
+    return re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9_-]', '-', name)).strip('-')
+
+
 class CSDLExplorerApp(App):
     """Main CSDL Metadata Explorer application.
 
@@ -42,13 +48,17 @@ class CSDLExplorerApp(App):
         layout: horizontal;
         height: 1fr;
         width: 100%;
+        margin: 0;
+        padding: 0;
     }
 
     #sidebar {
-        width: 35;
+        width: 32;
         min-width: 25;
         max-width: 50;
         height: 100%;
+        padding: 0;
+        margin: 0;
         border-right: solid $primary;
     }
 
@@ -59,7 +69,17 @@ class CSDLExplorerApp(App):
 
     #search-box {
         dock: top;
-        height: 3;
+        height: auto;
+        width: 100%;
+        border: none;
+    }
+
+    #search-box:focus {
+        border: solid $primary;
+    }
+
+    #search-box:focus-within {
+        border: solid $primary;
     }
 
     #entity-tree {
@@ -169,7 +189,7 @@ class CSDLExplorerApp(App):
 
         with Horizontal(id="app-grid"):
             with Vertical(id="sidebar"):
-                yield Input(placeholder="Search entities & fields...", id="search-box")
+                yield Input(placeholder="Filter Metadata Entities", id="search-box")
                 yield EntityTree(self.explorer, id="entity-tree")
                 yield SearchResults(id="search-results")
                 yield Static(
@@ -262,7 +282,7 @@ class CSDLExplorerApp(App):
             entity_names: Entity names that reference this picklist.
         """
         tabs = self.query_one("#tabs", TabbedContent)
-        pane_id = f"picklist-{name}"
+        pane_id = f"picklist-{_sanitize_id(name)}"
 
         # If already open, just focus it
         try:
@@ -354,39 +374,27 @@ class CSDLExplorerApp(App):
     def on_search_submitted(self, event: Input.Submitted) -> None:
         """Handle search submission (Enter key)."""
         term = event.value.strip()
-        if not term:
-            return
-        self._run_search(term)
+        self._filter_tree(term)
 
     @on(Input.Changed, "#search-box")
     def on_search_changed(self, event: Input.Changed) -> None:
         """Live search as user types."""
         term = event.value.strip()
-        if len(term) < 2:
-            return
-        self._run_search(term, limit=50)
+        self._filter_tree(term)
 
-    def _run_search(self, term: str, limit: int = 100) -> None:
-        """Execute search and populate the sidebar search results.
+    def _filter_tree(self, term: str) -> None:
+        """Filter the entity tree based on search term.
 
         Args:
             term: The search query string.
-            limit: Maximum number of results to display.
         """
-        results = self.explorer.search(term, limit=limit)
+        tree = self.query_one("#entity-tree", EntityTree)
+        count = tree.filter_tree(term)
 
-        search_table = self.query_one("#search-results", SearchResults)
-        search_table.clear()
-
-        for r in results:
-            row = format_search_result_row(r)
-            if row[0]:
-                search_table.add_row(*row)
-
-        # Show search results, hide tree
-        search_table.add_class("visible")
-        self.query_one("#entity-tree", EntityTree).display = False
-        self.sub_title = f"Search: {term} ({len(results)} results)"
+        if term:
+            self.sub_title = f"Filter: {term} ({count} matches)"
+        else:
+            self.sub_title = f"{self.explorer.entity_count} entities"
 
     def action_clear_search(self) -> None:
         """Clear search and return to tree."""
@@ -407,57 +415,67 @@ class CSDLExplorerApp(App):
         search_box = self.query_one("#search-box", Input)
         search_box.value = ""
 
-        # Hide search results, show tree
-        self.query_one("#search-results", SearchResults).remove_class("visible")
+        # Clear tree filter
+        self._filter_tree("")
+
+        # Focus tree
         tree = self.query_one("#entity-tree", EntityTree)
-        tree.display = True
         tree.focus()
 
     # ── Table filtering (fzf-style) ─────────────────────────────
 
     def on_key(self, event: events.Key) -> None:
-        """Capture keystrokes for table filtering when a DataTable has focus."""
+        """Capture keystrokes for table filtering when a FilterableDataTable has focus."""
+        from .widgets import FilterableDataTable
+
         focused = self.focused
-        if not isinstance(focused, DataTable):
+        if not isinstance(focused, FilterableDataTable):
             return
 
-        # Only filter on property tables inside entity panes
+        # Get the current tab name for subtitle
         tabs = self.query_one("#tabs", TabbedContent)
         active = tabs.active
         if not active or active == "welcome-tab":
             return
 
+        # Determine the context name for subtitle
+        context_name = "Filtered"
         try:
             pane = tabs.query_one(f"#{active}", EntityTabPane)
+            context_name = pane.entity.name
         except Exception:
-            return
+            try:
+                pane = tabs.query_one(f"#{active}", PicklistTabPane)
+                context_name = f"Picklist: {pane.picklist_name}"
+            except Exception:
+                pass
 
         if event.character and event.character.isprintable():
             self._table_filter += event.character
-            matched, total = pane.apply_filter(self._table_filter.lower())
-            self._update_filter_display(pane.entity.name, matched, total)
+            matched, total = focused.apply_filter(self._table_filter.lower())
+            self._update_filter_display(context_name, matched, total)
             event.prevent_default()
         elif event.key == "backspace" and self._table_filter:
             self._table_filter = self._table_filter[:-1]
-            matched, total = pane.apply_filter(self._table_filter.lower())
-            self._update_filter_display(pane.entity.name, matched, total)
+            matched, total = focused.apply_filter(self._table_filter.lower())
+            self._update_filter_display(context_name, matched, total)
             event.prevent_default()
         elif event.key == "escape" and self._table_filter:
             self._table_filter = ""
-            pane.apply_filter("")
+            focused.apply_filter("")
             self.query_one("#filter-bar", FilterBar).hide()
-            self.sub_title = pane.entity.name
+            self.sub_title = context_name
             event.prevent_default()
 
-    def _update_filter_display(self, entity_name: str, matched: int, total: int) -> None:
+    def _update_filter_display(self, context_name: str, matched: int, total: int) -> None:
         """Update the filter bar and subtitle after filtering."""
         bar = self.query_one("#filter-bar", FilterBar)
         if self._table_filter:
             bar.show_filter(self._table_filter)
-            self.sub_title = f"{entity_name} | filter: {self._table_filter} ({matched}/{total})"
+            self.sub_title = f"{context_name} | filter: {self._table_filter} ({matched}/{total})"
         else:
             bar.hide()
-            self.sub_title = entity_name
+            self.sub_title = context_name
 
     # ── Actions ──────────────────────────────────────────────────
 

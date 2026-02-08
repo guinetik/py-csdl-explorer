@@ -1,11 +1,17 @@
 """Picklist Entities sub-tab — DataTable of entities using this picklist."""
 
+import re
 from textual.widgets import DataTable, TabPane
 from textual.message import Message
 from textual import on
 
 from ..parser import Property
 from ..formatters import format_flag_check
+
+
+def _sanitize_id(name: str) -> str:
+    """Sanitize name for widget ID."""
+    return re.sub(r'-+', '-', re.sub(r'[^a-zA-Z0-9_-]', '-', name)).strip('-')
 
 
 class PicklistEntitiesTab(TabPane):
@@ -34,7 +40,7 @@ class PicklistEntitiesTab(TabPane):
 
     def compose(self):
         yield DataTable(
-            id=f"pick-entity-table-{self._picklist_name}",
+            id=f"pick-entity-table-{_sanitize_id(self._picklist_name)}",
             zebra_stripes=True,
             cursor_type="row",
         )
@@ -45,7 +51,7 @@ class PicklistEntitiesTab(TabPane):
 
     def _setup_table(self) -> None:
         """Add columns and rows."""
-        table = self.query_one(f"#pick-entity-table-{self._picklist_name}", DataTable)
+        table = self.query_one(f"#pick-entity-table-{_sanitize_id(self._picklist_name)}", DataTable)
         table.add_column("Entity", width=25, key="entity")
         table.add_column("Property", width=20, key="property")
         table.add_column("Type", width=15, key="type")

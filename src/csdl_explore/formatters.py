@@ -6,7 +6,13 @@ Textual TUI (app.py).  These functions return plain data (strings, lists
 of tuples, dicts) and never import any UI framework.
 """
 
+import re
+from datetime import datetime, timezone
+
 from .parser import EntityType, Property
+
+# SAP OData date pattern: /Date(1234567890)/ or /Date(1234567890+0000)/
+_SAP_DATE_RE = re.compile(r"^/Date\((-?\d+)([+-]\d{4})?\)/$")
 
 
 def format_property_flags(prop: Property, entity_keys: list[str]) -> list[tuple[str, str]]:
@@ -282,6 +288,9 @@ def build_odata_query_params(
     orderby_dir: str,
     expanded: list[str],
     top: str,
+    asof_date: str = "",
+    from_date: str = "",
+    to_date: str = "",
 ) -> dict[str, str]:
     """Build OData query parameters from individual field values.
 
@@ -294,6 +303,9 @@ def build_odata_query_params(
         orderby_dir: Sort direction (``"asc"`` or ``"desc"``).
         expanded: List of navigation property names for ``$expand``.
         top: Number of results to return.
+        asof_date: As-of date for point-in-time queries.
+        from_date: Start date for date range queries.
+        to_date: End date for date range queries.
 
     Returns:
         Dict of OData query parameter names to values.
@@ -308,6 +320,18 @@ def build_odata_query_params(
     if expanded:
         params["$expand"] = ",".join(expanded)
     params["$top"] = top or "20"
+
+    # Date parameters are mutually exclusive: asof_date OR (from_date + to_date)
+    if asof_date:
+        params["$asOfDate"] = asof_date
+    elif from_date and to_date:
+        params["$fromDate"] = from_date
+        params["$toDate"] = to_date
+    elif from_date:
+        params["$fromDate"] = from_date
+    elif to_date:
+        params["$toDate"] = to_date
+
     return params
 
 
@@ -371,3 +395,25 @@ def compute_picklist_impact(
         "required_props": required_props,
         "create_entities": create_entities,
     }
+
+
+def format_odata_value(value: str) -> str:
+    """Format an OData cell value for display.
+
+    Converts SAP ``/Date(timestamp)/`` strings to ``YYYY-MM-DD``.
+    All other values pass through unchanged.
+
+    Args:
+        value: Raw string value from the OData response.
+
+    Returns:
+        Formatted display string.
+    """
+    m = _SAP_DATE_RE.match(value)
+    if m:
+        ts_ms = int(m.group(1))
+        # Use epoch + timedelta to avoid Windows negative-timestamp errors
+        from datetime import timedelta
+        dt = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(milliseconds=ts_ms)
+        return dt.strftime("%Y-%m-%d")
+    return value

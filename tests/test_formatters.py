@@ -102,3 +102,27 @@ def test_compute_picklist_impact():
     assert impact["create_entity_count"] == 1
     assert len(impact["required_props"]) == 2
     assert "EmpJob" in impact["create_entities"]
+
+
+# ── format_odata_value ──────────────────────────────────────────────
+
+from csdl_explore.formatters import format_odata_value
+
+
+def test_format_odata_value_sap_date():
+    assert format_odata_value("/Date(1704067200000)/") == "2024-01-01"
+
+
+def test_format_odata_value_sap_date_with_offset():
+    assert format_odata_value("/Date(1704067200000+0000)/") == "2024-01-01"
+
+
+def test_format_odata_value_negative_timestamp():
+    # Before epoch: 1969-12-31
+    assert format_odata_value("/Date(-86400000)/") == "1969-12-31"
+
+
+def test_format_odata_value_passthrough():
+    assert format_odata_value("John Doe") == "John Doe"
+    assert format_odata_value("") == ""
+    assert format_odata_value("2024-01-01") == "2024-01-01"

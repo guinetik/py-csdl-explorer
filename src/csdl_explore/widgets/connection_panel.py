@@ -1,12 +1,12 @@
 """Reusable OData connection panel — Base URL, auth type, and credential configuration."""
 
-from textual.containers import Horizontal
-from textual.widgets import Static, Input, Select, Button, Collapsible
+from textual.containers import Horizontal, Vertical
+from textual.widgets import Static, Input, Select, Button
 from textual.message import Message
 from textual import on
 
 
-class ConnectionPanel(Collapsible):
+class ConnectionPanel(Vertical):
     """Base URL + auth type selector + configure button.
 
     Posts ``ConnectionPanel.ConnectionChanged`` when credentials are saved.
@@ -14,17 +14,16 @@ class ConnectionPanel(Collapsible):
 
     Args:
         panel_id: Unique ID suffix for namespacing child widgets.
-        title: Collapsible title (default ``"Auth"``).
     """
 
     DEFAULT_CSS = """
+    ConnectionPanel {
+        height: auto;
+    }
+
     ConnectionPanel .cp-base-url {
         width: 1fr;
         margin: 0 1;
-    }
-
-    ConnectionPanel .cp-spacer {
-        height: 1;
     }
 
     ConnectionPanel .cp-auth-row {
@@ -48,8 +47,8 @@ class ConnectionPanel(Collapsible):
             super().__init__()
             self.connection = connection
 
-    def __init__(self, panel_id: str, title: str = "Auth") -> None:
-        super().__init__(title=title, id=f"cp-section-{panel_id}")
+    def __init__(self, panel_id: str) -> None:
+        super().__init__(id=f"cp-panel-{panel_id}")
         self._panel_id = panel_id
 
     def compose(self):
@@ -60,7 +59,6 @@ class ConnectionPanel(Collapsible):
             id=f"cp-base-url-{pid}",
             classes="cp-base-url",
         )
-        yield Static(" ", classes="cp-spacer")
         with Horizontal(classes="cp-auth-row"):
             yield Select(
                 [

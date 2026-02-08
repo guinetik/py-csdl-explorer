@@ -1,4 +1,8 @@
 /* ── Query builder ───────────────────────────────── */
+QueryBuilder {
+    height: auto;
+}
+
 .q-params-row {
     height: auto;
     max-height: 12;
@@ -51,20 +55,35 @@
     width: 10;
 }
 
+.q-dates-row {
+    height: auto;
+    max-height: 12;
+    padding: 0 1;
+    margin: 1 0;
+}
+
+.q-dates-inputs {
+    height: 3;
+}
+
+.q-date-input {
+    width: 1fr;
+}
+
 .q-lists-spacer {
     height: 1;
 }
 
 .q-lists-row {
     height: auto;
-    max-height: 18;
+    max-height: 12;
     padding: 0 1;
 }
 
 .q-list-col {
     width: 1fr;
     height: auto;
-    max-height: 17;
+    max-height: 11;
     padding: 0 1 0 0;
 }
 
@@ -76,7 +95,7 @@
 SelectionList {
     width: 1fr;
     height: auto;
-    max-height: 12;
+    max-height: 6;
 }
 
 /* ── URL bar ─────────────────────────────────────── */
