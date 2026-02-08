@@ -231,9 +231,12 @@ class NavigationGraph(Widget):
             # Determine box representation based on zoom
             is_selected = node_id == self._selected_node
             if zoom >= 0.7:
-                # Full box
-                self._render_node_box(grid, node_id, screen_x, screen_y, is_selected)
-                node_boxes[node_id] = (screen_y, screen_x, len(node_id) + 4, 3)
+                # Full box - check for collision first
+                box_width = len(node_id) + 4
+                box_height = 3
+                if not self._box_would_collide(grid, screen_x, screen_y, box_width, box_height):
+                    self._render_node_box(grid, node_id, screen_x, screen_y, is_selected)
+                    node_boxes[node_id] = (screen_y, screen_x, box_width, box_height)
             elif zoom >= 0.4:
                 # Single char
                 grid[(screen_y, screen_x)] = f"[{'#00dc82' if is_selected else '#666666'}][{node_id[0]}][/]"
@@ -273,6 +276,25 @@ class NavigationGraph(Widget):
             canvas.update("\n".join(lines))
         else:
             canvas.update(f"[dim]No entities in viewport\nWidget: {widget_width}x{widget_height}\nZoom: {zoom}[/]")
+
+    def _box_would_collide(self, grid: dict, x: int, y: int, width: int, height: int) -> bool:
+        """Check if a box at the given position would collide with existing grid content.
+
+        Args:
+            grid: The rendering grid.
+            x: Left column position.
+            y: Top row position.
+            width: Box width in characters.
+            height: Box height in rows.
+
+        Returns:
+            True if any cell in the box region is already occupied.
+        """
+        for row in range(y, y + height):
+            for col in range(x, x + width):
+                if (row, col) in grid:
+                    return True
+        return False
 
     def _render_node_box(
         self,
