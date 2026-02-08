@@ -14,6 +14,23 @@ class WelcomeTabPane(TabPane):
         explorer: The CSDL explorer instance.
     """
 
+    DEFAULT_CSS = """
+    WelcomeTabPane #welcome-subtabs > Tabs {
+        display: none;
+    }
+
+    WelcomeTabPane #welcome-stats {
+        dock: top;
+        height: auto;
+        padding: 1 2;
+        background: $surface;
+    }
+
+    WelcomeTabPane #nav-graph {
+        height: 1fr;
+    }
+    """
+
     def __init__(self, explorer: CSDLExplorer):
         super().__init__("Welcome", id="welcome-tab")
         self.explorer = explorer

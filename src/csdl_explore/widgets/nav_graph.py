@@ -192,14 +192,27 @@ class NavigationGraph(Widget):
         grid = {}  # (row, col) -> character
         node_boxes = {}  # node_id -> (row, col, width, height)
 
+        # Calculate world space dimensions
+        world_width = visible_bounds["max_x"] - visible_bounds["min_x"]
+        world_height = visible_bounds["max_y"] - visible_bounds["min_y"]
+
+        # Avoid division by zero
+        if world_width == 0:
+            world_width = 1
+        if world_height == 0:
+            world_height = 1
+
         # Render nodes
         for node in visible_nodes:
             node_id = node["id"]
             x, y = positions[node_id]
 
-            # Convert world to screen coordinates
-            screen_x = int((x - visible_bounds["min_x"]) * zoom)
-            screen_y = int((y - visible_bounds["min_y"]) * zoom)
+            # Convert world coordinates to screen coordinates
+            # Map from world space [min, max] to screen space [0, width/height]
+            normalized_x = (x - visible_bounds["min_x"]) / world_width
+            normalized_y = (y - visible_bounds["min_y"]) / world_height
+            screen_x = int(normalized_x * widget_width)
+            screen_y = int(normalized_y * widget_height)
 
             # Determine box representation based on zoom
             is_selected = node_id == self._selected_node
