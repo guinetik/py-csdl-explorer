@@ -22,7 +22,8 @@ from .formatters import format_search_result_row
 from .sap_client import SAPConnection, load_env_file
 from .themes import ALL_THEMES, THEME_NAMES
 from .widgets import (
-    EntityTree, EntityTabPane, PicklistTabPane, SearchResults, FilterBar, NavigationGraph
+    EntityTree, EntityTabPane, PicklistTabPane, SearchResults, FilterBar,
+    WelcomeTabPane, NavigationGraph
 )
 
 MAX_TABS = 15
@@ -196,28 +197,6 @@ class CSDLExplorerApp(App):
             except Exception:
                 pass
 
-    def _get_welcome_stats(self) -> str:
-        """Generate welcome screen stats text."""
-        total_props = sum(len(e.properties) for e in self.explorer.entities.values())
-        total_custom = sum(
-            len([p for p in e.properties.values() if p.name.startswith("custom")])
-            for e in self.explorer.entities.values()
-        )
-        # Count unique picklists
-        all_picklists = set()
-        for entity in self.explorer.entities.values():
-            for prop in entity.properties.values():
-                if prop.picklist:
-                    all_picklists.add(prop.picklist)
-
-        return (
-            f"[bold]Metadata Overview[/]\n\n"
-            f"[#00dc82]Entities:[/] {self.explorer.entity_count}\n"
-            f"[#00dc82]Properties:[/] {total_props:,}\n"
-            f"[#00dc82]Picklists:[/] {len(all_picklists)}\n"
-            f"[#00dc82]Custom Fields:[/] {total_custom:,}\n"
-        )
-
     def compose(self) -> ComposeResult:
         yield Header()
 
@@ -233,9 +212,7 @@ class CSDLExplorerApp(App):
 
             with Vertical(id="main"):
                 with TabbedContent(id="tabs"):
-                    with TabPane("Welcome", id="welcome-tab"):
-                        yield Static(self._get_welcome_stats(), id="welcome-stats")
-                        yield NavigationGraph(self.explorer, id="nav-graph")
+                    yield WelcomeTabPane(self.explorer)
                 yield FilterBar(id="filter-bar")
 
         yield Footer()
@@ -375,13 +352,7 @@ class CSDLExplorerApp(App):
         # If no tabs left, show welcome
         remaining = tabs.query(TabPane)
         if not remaining:
-            welcome_pane = TabPane(
-                "Welcome",
-                Static(self._get_welcome_stats(), id="welcome-stats"),
-                NavigationGraph(self.explorer, id="nav-graph"),
-                id="welcome-tab"
-            )
-            tabs.add_pane(welcome_pane)
+            tabs.add_pane(WelcomeTabPane(self.explorer))
             tabs.active = "welcome-tab"
             self.sub_title = f"{self.explorer.entity_count} entities"
 
