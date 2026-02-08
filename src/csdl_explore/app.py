@@ -196,9 +196,8 @@ class CSDLExplorerApp(App):
             except Exception:
                 pass
 
-    def _build_welcome_screen(self) -> Vertical:
-        """Build the welcome screen with stats and navigation graph."""
-        # Count metadata stats
+    def _get_welcome_stats(self) -> str:
+        """Generate welcome screen stats text."""
         total_props = sum(len(e.properties) for e in self.explorer.entities.values())
         total_custom = sum(
             len([p for p in e.properties.values() if p.name.startswith("custom")])
@@ -211,17 +210,12 @@ class CSDLExplorerApp(App):
                 if prop.picklist:
                     all_picklists.add(prop.picklist)
 
-        stats_text = (
+        return (
             f"[bold]Metadata Overview[/]\n\n"
             f"[#00dc82]Entities:[/] {self.explorer.entity_count}\n"
             f"[#00dc82]Properties:[/] {total_props:,}\n"
             f"[#00dc82]Picklists:[/] {len(all_picklists)}\n"
             f"[#00dc82]Custom Fields:[/] {total_custom:,}\n"
-        )
-
-        return Vertical(
-            Static(stats_text, id="welcome-stats"),
-            NavigationGraph(self.explorer, id="nav-graph"),
         )
 
     def compose(self) -> ComposeResult:
@@ -240,7 +234,8 @@ class CSDLExplorerApp(App):
             with Vertical(id="main"):
                 with TabbedContent(id="tabs"):
                     with TabPane("Welcome", id="welcome-tab"):
-                        yield self._build_welcome_screen()
+                        yield Static(self._get_welcome_stats(), id="welcome-stats")
+                        yield NavigationGraph(self.explorer, id="nav-graph")
                 yield FilterBar(id="filter-bar")
 
         yield Footer()
@@ -380,7 +375,12 @@ class CSDLExplorerApp(App):
         # If no tabs left, show welcome
         remaining = tabs.query(TabPane)
         if not remaining:
-            welcome_pane = TabPane("Welcome", self._build_welcome_screen(), id="welcome-tab")
+            welcome_pane = TabPane(
+                "Welcome",
+                Static(self._get_welcome_stats(), id="welcome-stats"),
+                NavigationGraph(self.explorer, id="nav-graph"),
+                id="welcome-tab"
+            )
             tabs.add_pane(welcome_pane)
             tabs.active = "welcome-tab"
             self.sub_title = f"{self.explorer.entity_count} entities"
