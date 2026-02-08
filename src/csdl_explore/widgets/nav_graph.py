@@ -242,13 +242,14 @@ class NavigationGraph(Widget):
                 grid[(screen_y, screen_x)] = f"[{'#00dc82' if is_selected else '#666666'}]•[/]"
                 node_boxes[node_id] = (screen_y, screen_x, 1, 1)
 
-        # Render edges (only if both nodes visible and zoom >= 0.4)
-        if zoom >= 0.4:
-            for edge in self._graph_data["edges"]:
-                source = edge["source"]
-                target = edge["target"]
-                if source in node_boxes and target in node_boxes:
-                    self._render_edge(grid, node_boxes[source], node_boxes[target])
+        # Render edges (DISABLED - edge rendering needs fixing)
+        # TODO: Fix edge rendering logic to prevent stray lines
+        # if zoom >= 0.4:
+        #     for edge in self._graph_data["edges"]:
+        #         source = edge["source"]
+        #         target = edge["target"]
+        #         if source in node_boxes and target in node_boxes:
+        #             self._render_edge(grid, node_boxes[source], node_boxes[target])
 
         # Convert grid to text
         if grid:
