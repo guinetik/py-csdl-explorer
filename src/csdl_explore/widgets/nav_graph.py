@@ -164,9 +164,18 @@ class NavigationGraph(Widget):
         widget_height = max(self.size.height - 4, 20)  # Account for help bar
 
         # Calculate visible world bounds
+        # World coords from spring_layout are roughly in [-1, 1] range
+        # Viewport size in world units (not screen units!)
         pan_x, pan_y, zoom = self._viewport
-        visible_width = widget_width / zoom
-        visible_height = widget_height / zoom
+
+        # Base world viewport size (will be scaled by zoom)
+        base_world_width = 2.5  # Show ~2.5 units of world space
+        base_world_height = 2.5
+
+        # Apply zoom (higher zoom = smaller viewport = more detail)
+        visible_width = base_world_width / zoom
+        visible_height = base_world_height / zoom
+
         visible_bounds = {
             "min_x": pan_x - visible_width / 2,
             "max_x": pan_x + visible_width / 2,
@@ -203,6 +212,7 @@ class NavigationGraph(Widget):
             world_height = 1
 
         # Render nodes
+        debug_info = []
         for node in visible_nodes:
             node_id = node["id"]
             x, y = positions[node_id]
@@ -213,6 +223,9 @@ class NavigationGraph(Widget):
             normalized_y = (y - visible_bounds["min_y"]) / world_height
             screen_x = int(normalized_x * widget_width)
             screen_y = int(normalized_y * widget_height)
+
+            if len(debug_info) < 3:
+                debug_info.append(f"{node_id}: world({x:.2f},{y:.2f}) -> screen({screen_x},{screen_y})")
 
             # Determine box representation based on zoom
             is_selected = node_id == self._selected_node
@@ -243,6 +256,11 @@ class NavigationGraph(Widget):
             max_col = max(pos[1] for pos in grid.keys())
 
             lines = []
+            # Add debug info at top
+            lines.append(f"[dim]Size: {widget_width}x{widget_height} | Nodes: {len(visible_nodes)} | Zoom: {zoom:.2f}[/]")
+            for info in debug_info:
+                lines.append(f"[dim]{info}[/]")
+
             for row in range(max_row + 1):
                 line_parts = []
                 for col in range(max_col + 1):
@@ -252,7 +270,7 @@ class NavigationGraph(Widget):
 
             canvas.update("\n".join(lines))
         else:
-            canvas.update("[dim]No entities in viewport (zoom out or pan)[/]")
+            canvas.update(f"[dim]No entities in viewport\nWidget: {widget_width}x{widget_height}\nZoom: {zoom}[/]")
 
     def _render_node_box(
         self,
