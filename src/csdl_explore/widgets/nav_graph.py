@@ -24,6 +24,9 @@ class NavigationGraph(Widget):
         explorer: The CSDL explorer instance.
     """
 
+    # Allow this widget to receive keyboard focus
+    can_focus = True
+
     DEFAULT_CSS = """
     NavigationGraph {
         height: 1fr;
@@ -57,9 +60,14 @@ class NavigationGraph(Widget):
     """
 
     BINDINGS = [
-        ("up,down,left,right", "pan", "Pan"),
-        ("plus,minus", "zoom", "Zoom"),
-        ("tab,shift+tab", "navigate", "Navigate"),
+        ("up", "pan('up')", "Pan Up"),
+        ("down", "pan('down')", "Pan Down"),
+        ("left", "pan('left')", "Pan Left"),
+        ("right", "pan('right')", "Pan Right"),
+        ("plus", "zoom('plus')", "Zoom In"),
+        ("minus", "zoom('minus')", "Zoom Out"),
+        ("tab", "navigate('tab')", "Next Node"),
+        ("shift+tab", "navigate('shift+tab')", "Prev Node"),
         ("enter", "select", "Open"),
         ("home", "reset", "Reset"),
         ("h", "toggle_help", "Help"),

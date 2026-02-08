@@ -35,6 +35,12 @@ class WelcomeTabPane(TabPane):
         super().__init__("Welcome", id="welcome-tab")
         self.explorer = explorer
 
+    def on_mount(self) -> None:
+        """Set focus to the navigation graph when tab is mounted."""
+        # Give focus to the graph so keyboard controls work
+        graph = self.query_one("#nav-graph", NavigationGraph)
+        graph.focus()
+
     def compose(self):
         # Calculate stats
         total_props = sum(len(e.properties) for e in self.explorer.entities.values())

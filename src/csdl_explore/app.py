@@ -364,6 +364,12 @@ class CSDLExplorerApp(App):
         elif pane.id == "welcome-tab":
             self.sub_title = f"{self.explorer.entity_count} entities"
             self.query_one("#filter-bar", FilterBar).hide()
+            # Focus the navigation graph so keyboard controls work
+            try:
+                graph = pane.query_one("#nav-graph", NavigationGraph)
+                graph.focus()
+            except Exception:
+                pass
 
     # ── Search ───────────────────────────────────────────────────
 
