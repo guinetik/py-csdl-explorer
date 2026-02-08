@@ -103,6 +103,11 @@ class NavigationGraph(Widget):
         """Compute graph on mount in background thread."""
         self._build_graph_async()
 
+    def on_resize(self) -> None:
+        """Re-render graph when widget is resized."""
+        if self._graph_data:
+            self._render_graph()
+
     @work(thread=True)
     def _build_graph_async(self) -> None:
         """Build graph in worker thread to avoid blocking UI."""
@@ -154,9 +159,9 @@ class NavigationGraph(Widget):
             canvas.update("[dim]No navigation relationships found in metadata[/]")
             return
 
-        # Get viewport dimensions
-        widget_width = self.size.width
-        widget_height = self.size.height - 4  # Account for help bar
+        # Get viewport dimensions (use minimum size if not yet laid out)
+        widget_width = max(self.size.width, 80)
+        widget_height = max(self.size.height - 4, 20)  # Account for help bar
 
         # Calculate visible world bounds
         pan_x, pan_y, zoom = self._viewport
