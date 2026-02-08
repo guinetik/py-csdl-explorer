@@ -11,9 +11,9 @@ A terminal explorer for OData CSDL metadata. Parse any `$metadata` XML and disco
 
 ## The Problem
 
-OData services expose their schema through `$metadata` — but those XML documents can be enormous (10MB+, 700+ entities). This tool parses the CSDL and gives you fast, searchable access to every entity, property, navigation relationship, and annotation.
+OData services expose their schema through `$metadata` but those XML documents can be enormous (10MB+, 700+ entities). This tool parses the CSDL and gives you fast, searchable access to every entity, property, navigation relationship, and annotation.
 
-Particularly useful with **SAP SuccessFactors**, where documentation says "Worker Category" but the actual field is `customString17`.
+Particularly useful with **SAP**, where documentation says "Worker Category" but the actual field is `customString17`.
 
 ## Installation
 
@@ -66,7 +66,7 @@ csdl-explore --file metadata.xml entity EmpJob
 $ csdl-explore metadata.xml
 
 ╭─────────────────────────────────────────╮
-│             CSDL Explorer                    │
+│             CSDL Explorer               │
 │         Loaded 735 entities             │
 ╰─────────────────────────────────────────╯
 

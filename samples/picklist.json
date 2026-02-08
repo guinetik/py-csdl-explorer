@@ -1,0 +1,666 @@
+{
+  "d": {
+    "results": [
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65191L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65191",
+        "externalCode": "9A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65191L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Service Workers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65191L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Service Workers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65191L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Operatori dei servizi"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65178L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65178",
+        "externalCode": "2B",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65178L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Altri professionisti (ing.)"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65178L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Other Professionals (Engineer)"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65178L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Other Professionals (Engineer)"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65182L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65182",
+        "externalCode": "2F",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65182L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Marketing"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65182L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Marketing"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65182L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Marketing"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65172L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65172",
+        "externalCode": "10",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65172L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Intern/Co-op"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65172L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Stagista/Cooperante"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65172L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Intern/Coop"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65186L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65186",
+        "externalCode": "4A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65186L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Sales"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65186L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Vendite"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65186L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Sales"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65181L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65181",
+        "externalCode": "2E",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65181L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Hardware Engineer"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65181L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Hardware Engineers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65181L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Hardware Engineers"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65187L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65187",
+        "externalCode": "5A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65187L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Office/Clerical"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65187L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Personale impiegatizio"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65187L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Office/Clerical"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65174L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65174",
+        "externalCode": "1B",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65174L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Administrative Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65174L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Administrative Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65174L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Direttori amministrativi"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65173L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65173",
+        "externalCode": "1A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65173L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Executives"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65173L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Executives"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65173L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Dirigenti"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65190L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65190",
+        "externalCode": "8A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65190L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Operai"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65190L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Labourers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65190L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Laborers"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65188L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65188",
+        "externalCode": "6A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65188L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Craft Workers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65188L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Artigiani"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65188L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Craft Workers"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65184L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65184",
+        "externalCode": "2H",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65184L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Global Services"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65184L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Servizi globali"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65184L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Global Services"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65183L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65183",
+        "externalCode": "2G",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65183L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Finance"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65183L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Finanza"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65183L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Finance"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65177L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65177",
+        "externalCode": "2A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65177L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Other Professionals (Non Eng)"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65177L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Altri professionisti (non ing.)"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65177L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Other Professionals (Non Eng)"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65175L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65175",
+        "externalCode": "1C",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65175L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Technical Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65175L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Technical Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65175L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Direttori tecnici"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65189L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65189",
+        "externalCode": "7A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65189L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Operatives"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65189L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Operatives"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65189L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Maestranze"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65185L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65185",
+        "externalCode": "3A",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65185L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Technicians"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65185L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Tecnici"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65185L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Technicians"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65180L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65180",
+        "externalCode": "2D",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65180L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Software Engineer"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65180L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Software Engineers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65180L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Software Engineers"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65179L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65179",
+        "externalCode": "2C",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65179L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Programme Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65179L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Program Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65179L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Program Manager"
+            }
+          ]
+        }
+      },
+      {
+        "__metadata": {
+          "uri": "https://api2.successfactors.eu/odata/v2/PicklistOption(65176L)",
+          "type": "SFOData.PicklistOption"
+        },
+        "id": "65176",
+        "externalCode": "1D",
+        "picklistLabels": {
+          "results": [
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_GB',optionId=65176L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Sales Managers"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='it_IT',optionId=65176L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Responsabili delle vendite"
+            },
+            {
+              "__metadata": {
+                "uri": "https://api2.successfactors.eu/odata/v2/PicklistLabel(locale='en_US',optionId=65176L)",
+                "type": "SFOData.PicklistLabel"
+              },
+              "label": "Sales Managers"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

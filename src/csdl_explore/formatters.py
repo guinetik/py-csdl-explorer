@@ -8,8 +8,14 @@ of tuples, dicts) and never import any UI framework.
 
 import re
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+import networkx as nx
 
 from .parser import EntityType, Property
+
+if TYPE_CHECKING:
+    from .explorer import CSDLExplorer
 
 # SAP OData date pattern: /Date(1234567890)/ or /Date(1234567890+0000)/
 _SAP_DATE_RE = re.compile(r"^/Date\((-?\d+)([+-]\d{4})?\)/$")
@@ -417,3 +423,107 @@ def format_odata_value(value: str) -> str:
         dt = datetime(1970, 1, 1, tzinfo=timezone.utc) + timedelta(milliseconds=ts_ms)
         return dt.strftime("%Y-%m-%d")
     return value
+
+
+def build_navigation_graph(explorer: "CSDLExplorer") -> dict:
+    """Build navigation graph structure from metadata.
+
+    Creates a directed graph where nodes are entities and edges are navigation
+    properties. Only includes entities that have at least one navigation property
+    (incoming or outgoing). Uses NetworkX spring_layout for positioning.
+
+    Args:
+        explorer: The CSDL explorer instance containing metadata.
+
+    Returns:
+        Dict with:
+        - ``nodes``: List of dicts with ``{id, name, incoming_count, outgoing_count}``
+        - ``edges``: List of dicts with ``{source, target, nav_name}``
+        - ``positions``: Dict mapping entity name to ``(x, y)`` coordinates
+        - ``bounds``: Dict with ``{min_x, max_x, min_y, max_y}``
+    """
+    # Build directed graph
+    graph = nx.DiGraph()
+
+    # First pass: identify all entities with navigation properties
+    entities_with_navs = set()
+    nav_edges = []
+
+    for entity_name, entity in explorer.entities.items():
+        # Check if entity has any outgoing navigation
+        if entity.navigation:
+            entities_with_navs.add(entity_name)
+            for nav in entity.navigation.values():
+                if nav.target_entity:
+                    entities_with_navs.add(nav.target_entity)
+                    nav_edges.append((entity_name, nav.target_entity, nav.name))
+
+    # Add nodes to graph
+    for entity_name in entities_with_navs:
+        graph.add_node(entity_name)
+
+    # Add edges to graph
+    for source, target, nav_name in nav_edges:
+        if source in graph and target in graph:
+            graph.add_edge(source, target, nav_name=nav_name)
+
+    # If no connected entities, return empty graph
+    if not graph.nodes():
+        return {
+            "nodes": [],
+            "edges": [],
+            "positions": {},
+            "bounds": {"min_x": 0, "max_x": 0, "min_y": 0, "max_y": 0},
+        }
+
+    # Compute layout using spring/force-directed algorithm
+    positions = nx.spring_layout(
+        graph,
+        k=1.5,  # Optimal distance between nodes
+        iterations=50,  # Layout quality vs speed
+        seed=42,  # Reproducible layouts
+    )
+
+    # Build node list with metadata
+    nodes = []
+    for node_id in graph.nodes():
+        incoming_count = graph.in_degree(node_id)
+        outgoing_count = graph.out_degree(node_id)
+        nodes.append({
+            "id": node_id,
+            "name": node_id,
+            "incoming_count": incoming_count,
+            "outgoing_count": outgoing_count,
+        })
+
+    # Build edge list
+    edges = []
+    for source, target, data in graph.edges(data=True):
+        edges.append({
+            "source": source,
+            "target": target,
+            "nav_name": data.get("nav_name", ""),
+        })
+
+    # Convert positions to plain Python floats (NetworkX returns numpy types)
+    positions = {k: (float(v[0]), float(v[1])) for k, v in positions.items()}
+
+    # Calculate bounds
+    if positions:
+        x_coords = [pos[0] for pos in positions.values()]
+        y_coords = [pos[1] for pos in positions.values()]
+        bounds = {
+            "min_x": float(min(x_coords)),
+            "max_x": float(max(x_coords)),
+            "min_y": float(min(y_coords)),
+            "max_y": float(max(y_coords)),
+        }
+    else:
+        bounds = {"min_x": 0.0, "max_x": 0.0, "min_y": 0.0, "max_y": 0.0}
+
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "positions": positions,
+        "bounds": bounds,
+    }

@@ -18,6 +18,7 @@ from .picklist_impact_tab import PicklistImpactTab
 from .picklist_values_tab import PicklistValuesTab
 from .filterable_table import FilterableDataTable
 from .json_viewer_modal import JsonViewerModal
+from .nav_graph import NavigationGraph
 
 __all__ = [
     "EntityTree", "EntityTabPane", "PicklistTabPane",
@@ -26,5 +27,5 @@ __all__ = [
     "DetailsTab", "PropertiesTab", "QueryTab",
     "PicklistOverviewTab", "PicklistEntitiesTab",
     "PicklistImpactTab", "PicklistValuesTab",
-    "JsonViewerModal",
+    "JsonViewerModal", "NavigationGraph",
 ]

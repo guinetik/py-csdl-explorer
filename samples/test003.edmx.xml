@@ -1,0 +1,912 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="Хранилище UNLV_CORPORATIONModel" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="Authorisation">
+          <Key>
+            <PropertyRef Name="ID_Authorisation" />
+          </Key>
+          <Property Name="ID_Authorisation" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="UserLogin" Type="varchar" MaxLength="25" Nullable="false" />
+          <Property Name="PasswordHash" Type="varchar" MaxLength="64" Nullable="false" />
+          <Property Name="Role_ID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Cheque">
+          <Key>
+            <PropertyRef Name="ID_Cheque" />
+          </Key>
+          <Property Name="ID_Cheque" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="DateChequeIssue" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="TotalPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Product_ID" Type="int" Nullable="false" />
+          <Property Name="Order_ID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Cities">
+          <Key>
+            <PropertyRef Name="ID_City" />
+          </Key>
+          <Property Name="ID_City" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CityName" Type="varchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Orders">
+          <Key>
+            <PropertyRef Name="ID_Order" />
+          </Key>
+          <Property Name="ID_Order" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="User_ID" Type="int" Nullable="false" />
+          <Property Name="DateOrder" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="Address_ID" Type="int" Nullable="false" />
+          <Property Name="OrderStatus_ID" Type="int" Nullable="false" />
+          <Property Name="Product_ID" Type="int" Nullable="false" />
+          <Property Name="ProductsOnOrder" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="OrderStatus">
+          <Key>
+            <PropertyRef Name="ID_OrderStatus" />
+          </Key>
+          <Property Name="ID_OrderStatus" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="StatusName" Type="varchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PaymentMethod">
+          <Key>
+            <PropertyRef Name="ID_PaymentMethod" />
+          </Key>
+          <Property Name="ID_PaymentMethod" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CardNumber" Type="varchar" MaxLength="16" Nullable="false" />
+          <Property Name="ExpiryDate" Type="varchar" MaxLength="10" Nullable="false" />
+          <Property Name="CardholderName" Type="varchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="PriceHistory">
+          <Key>
+            <PropertyRef Name="ID_PriceHistory" />
+          </Key>
+          <Property Name="ID_PriceHistory" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="OldPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="NewPrice" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="DateRevisions" Type="varchar" MaxLength="10" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ProductCategory">
+          <Key>
+            <PropertyRef Name="ID_Category" />
+          </Key>
+          <Property Name="ID_Category" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CategoryName" Type="varchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ProductImage">
+          <Key>
+            <PropertyRef Name="ID_ProductImage" />
+          </Key>
+          <Property Name="ID_ProductImage" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ImagePath" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="DateAdded" Type="varchar" MaxLength="10" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="ID_Product" />
+          </Key>
+          <Property Name="ID_Product" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Category_ID" Type="int" Nullable="false" />
+          <Property Name="ProductName" Type="varchar" MaxLength="100" Nullable="false" />
+          <Property Name="DescriptionProducts" Type="text" />
+          <Property Name="QuantityInStock" Type="int" Nullable="false" />
+          <Property Name="ProductImage_ID" Type="int" />
+          <Property Name="PriceHistory_ID" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Roles">
+          <Key>
+            <PropertyRef Name="ID_Role" />
+          </Key>
+          <Property Name="ID_Role" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="RoleName" Type="varchar" MaxLength="25" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ShippingAddress">
+          <Key>
+            <PropertyRef Name="ID_Address" />
+          </Key>
+          <Property Name="ID_Address" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FullName" Type="varchar" MaxLength="30" Nullable="false" />
+          <Property Name="City_ID" Type="int" Nullable="false" />
+          <Property Name="Street" Type="varchar" MaxLength="30" Nullable="false" />
+          <Property Name="IndexAddress" Type="int" Nullable="false" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="ID_User" />
+          </Key>
+          <Property Name="ID_User" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Authorisation_ID" Type="int" Nullable="false" />
+          <Property Name="Email" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Role_ID" Type="int" Nullable="false" />
+          <Property Name="PaymentMethod_ID" Type="int" />
+        </EntityType>
+        <Association Name="FK__Authorisa__Role___398D8EEE">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="Authorisation" Type="Self.Authorisation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="ID_Role" />
+            </Principal>
+            <Dependent Role="Authorisation">
+              <PropertyRef Name="Role_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Cheque__Order_ID__5AEE82B9">
+          <End Role="Orders" Type="Self.Orders" Multiplicity="1" />
+          <End Role="Cheque" Type="Self.Cheque" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Orders">
+              <PropertyRef Name="ID_Order" />
+            </Principal>
+            <Dependent Role="Cheque">
+              <PropertyRef Name="Order_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Cheque__Product___59FA5E80">
+          <End Role="Products" Type="Self.Products" Multiplicity="1" />
+          <End Role="Cheque" Type="Self.Cheque" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ID_Product" />
+            </Principal>
+            <Dependent Role="Cheque">
+              <PropertyRef Name="Product_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__Address___5629CD9C">
+          <End Role="ShippingAddress" Type="Self.ShippingAddress" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ShippingAddress">
+              <PropertyRef Name="ID_Address" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="Address_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__OrderSta__571DF1D5">
+          <End Role="OrderStatus" Type="Self.OrderStatus" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderStatus">
+              <PropertyRef Name="ID_OrderStatus" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="OrderStatus_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__Product___5441852A">
+          <End Role="Products" Type="Self.Products" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ID_Product" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="Product_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__User_ID__5535A963">
+          <End Role="Users" Type="Self.Users" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="ID_User" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="User_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__Catego__48CFD27E">
+          <End Role="ProductCategory" Type="Self.ProductCategory" Multiplicity="1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCategory">
+              <PropertyRef Name="ID_Category" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="Category_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__PriceH__4AB81AF0">
+          <End Role="PriceHistory" Type="Self.PriceHistory" Multiplicity="1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PriceHistory">
+              <PropertyRef Name="ID_PriceHistory" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="PriceHistory_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__Produc__49C3F6B7">
+          <End Role="ProductImage" Type="Self.ProductImage" Multiplicity="0..1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductImage">
+              <PropertyRef Name="ID_ProductImage" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="ProductImage_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ShippingA__City___4F7CD00D">
+          <End Role="Cities" Type="Self.Cities" Multiplicity="1" />
+          <End Role="ShippingAddress" Type="Self.ShippingAddress" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="ID_City" />
+            </Principal>
+            <Dependent Role="ShippingAddress">
+              <PropertyRef Name="City_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__Authorisa__3E52440B">
+          <End Role="Authorisation" Type="Self.Authorisation" Multiplicity="1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Authorisation">
+              <PropertyRef Name="ID_Authorisation" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="Authorisation_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__PaymentMe__403A8C7D">
+          <End Role="PaymentMethod" Type="Self.PaymentMethod" Multiplicity="0..1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PaymentMethod">
+              <PropertyRef Name="ID_PaymentMethod" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="PaymentMethod_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__Role_ID__3F466844">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="ID_Role" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="Role_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="Хранилище UNLV_CORPORATIONModelContainer">
+          <EntitySet Name="Authorisation" EntityType="Self.Authorisation" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Cheque" EntityType="Self.Cheque" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Cities" EntityType="Self.Cities" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Orders" EntityType="Self.Orders" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="OrderStatus" EntityType="Self.OrderStatus" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PaymentMethod" EntityType="Self.PaymentMethod" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PriceHistory" EntityType="Self.PriceHistory" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductCategory" EntityType="Self.ProductCategory" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ProductImage" EntityType="Self.ProductImage" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Products" EntityType="Self.Products" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Roles" EntityType="Self.Roles" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ShippingAddress" EntityType="Self.ShippingAddress" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Users" EntityType="Self.Users" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK__Authorisa__Role___398D8EEE" Association="Self.FK__Authorisa__Role___398D8EEE">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="Authorisation" EntitySet="Authorisation" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Cheque__Order_ID__5AEE82B9" Association="Self.FK__Cheque__Order_ID__5AEE82B9">
+            <End Role="Orders" EntitySet="Orders" />
+            <End Role="Cheque" EntitySet="Cheque" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Cheque__Product___59FA5E80" Association="Self.FK__Cheque__Product___59FA5E80">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Cheque" EntitySet="Cheque" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__Address___5629CD9C" Association="Self.FK__Orders__Address___5629CD9C">
+            <End Role="ShippingAddress" EntitySet="ShippingAddress" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__OrderSta__571DF1D5" Association="Self.FK__Orders__OrderSta__571DF1D5">
+            <End Role="OrderStatus" EntitySet="OrderStatus" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__Product___5441852A" Association="Self.FK__Orders__Product___5441852A">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__User_ID__5535A963" Association="Self.FK__Orders__User_ID__5535A963">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__Catego__48CFD27E" Association="Self.FK__Products__Catego__48CFD27E">
+            <End Role="ProductCategory" EntitySet="ProductCategory" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__PriceH__4AB81AF0" Association="Self.FK__Products__PriceH__4AB81AF0">
+            <End Role="PriceHistory" EntitySet="PriceHistory" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__Produc__49C3F6B7" Association="Self.FK__Products__Produc__49C3F6B7">
+            <End Role="ProductImage" EntitySet="ProductImage" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ShippingA__City___4F7CD00D" Association="Self.FK__ShippingA__City___4F7CD00D">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="ShippingAddress" EntitySet="ShippingAddress" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__Authorisa__3E52440B" Association="Self.FK__Users__Authorisa__3E52440B">
+            <End Role="Authorisation" EntitySet="Authorisation" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__PaymentMe__403A8C7D" Association="Self.FK__Users__PaymentMe__403A8C7D">
+            <End Role="PaymentMethod" EntitySet="PaymentMethod" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__Role_ID__3F466844" Association="Self.FK__Users__Role_ID__3F466844">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="UNLV_CORPORATIONModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="Authorisation">
+          <Key>
+            <PropertyRef Name="ID_Authorisation" />
+          </Key>
+          <Property Name="ID_Authorisation" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="UserLogin" Type="String" MaxLength="25" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="PasswordHash" Type="String" MaxLength="64" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Role_ID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Roles" Relationship="Self.FK__Authorisa__Role___398D8EEE" FromRole="Authorisation" ToRole="Roles" />
+          <NavigationProperty Name="Users" Relationship="Self.FK__Users__Authorisa__3E52440B" FromRole="Authorisation" ToRole="Users" />
+        </EntityType>
+        <EntityType Name="Cheque">
+          <Key>
+            <PropertyRef Name="ID_Cheque" />
+          </Key>
+          <Property Name="ID_Cheque" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="DateChequeIssue" Type="String" MaxLength="10" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="TotalPrice" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="Product_ID" Type="Int32" Nullable="false" />
+          <Property Name="Order_ID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Orders" Relationship="Self.FK__Cheque__Order_ID__5AEE82B9" FromRole="Cheque" ToRole="Orders" />
+          <NavigationProperty Name="Products" Relationship="Self.FK__Cheque__Product___59FA5E80" FromRole="Cheque" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="Cities">
+          <Key>
+            <PropertyRef Name="ID_City" />
+          </Key>
+          <Property Name="ID_City" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CityName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="ShippingAddress" Relationship="Self.FK__ShippingA__City___4F7CD00D" FromRole="Cities" ToRole="ShippingAddress" />
+        </EntityType>
+        <EntityType Name="Orders">
+          <Key>
+            <PropertyRef Name="ID_Order" />
+          </Key>
+          <Property Name="ID_Order" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="User_ID" Type="Int32" Nullable="false" />
+          <Property Name="DateOrder" Type="String" MaxLength="10" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Address_ID" Type="Int32" Nullable="false" />
+          <Property Name="OrderStatus_ID" Type="Int32" Nullable="false" />
+          <Property Name="Product_ID" Type="Int32" Nullable="false" />
+          <Property Name="ProductsOnOrder" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Cheque" Relationship="Self.FK__Cheque__Order_ID__5AEE82B9" FromRole="Orders" ToRole="Cheque" />
+          <NavigationProperty Name="ShippingAddress" Relationship="Self.FK__Orders__Address___5629CD9C" FromRole="Orders" ToRole="ShippingAddress" />
+          <NavigationProperty Name="OrderStatus" Relationship="Self.FK__Orders__OrderSta__571DF1D5" FromRole="Orders" ToRole="OrderStatus" />
+          <NavigationProperty Name="Products" Relationship="Self.FK__Orders__Product___5441852A" FromRole="Orders" ToRole="Products" />
+          <NavigationProperty Name="Users" Relationship="Self.FK__Orders__User_ID__5535A963" FromRole="Orders" ToRole="Users" />
+        </EntityType>
+        <EntityType Name="OrderStatus">
+          <Key>
+            <PropertyRef Name="ID_OrderStatus" />
+          </Key>
+          <Property Name="ID_OrderStatus" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="StatusName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Orders" Relationship="Self.FK__Orders__OrderSta__571DF1D5" FromRole="OrderStatus" ToRole="Orders" />
+        </EntityType>
+        <EntityType Name="PaymentMethod">
+          <Key>
+            <PropertyRef Name="ID_PaymentMethod" />
+          </Key>
+          <Property Name="ID_PaymentMethod" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CardNumber" Type="String" MaxLength="16" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="ExpiryDate" Type="String" MaxLength="10" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="CardholderName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Users" Relationship="Self.FK__Users__PaymentMe__403A8C7D" FromRole="PaymentMethod" ToRole="Users" />
+        </EntityType>
+        <EntityType Name="PriceHistory">
+          <Key>
+            <PropertyRef Name="ID_PriceHistory" />
+          </Key>
+          <Property Name="ID_PriceHistory" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="OldPrice" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="NewPrice" Type="Decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="DateRevisions" Type="String" MaxLength="10" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="Self.FK__Products__PriceH__4AB81AF0" FromRole="PriceHistory" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="ProductCategory">
+          <Key>
+            <PropertyRef Name="ID_Category" />
+          </Key>
+          <Property Name="ID_Category" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CategoryName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="Self.FK__Products__Catego__48CFD27E" FromRole="ProductCategory" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="ProductImage">
+          <Key>
+            <PropertyRef Name="ID_ProductImage" />
+          </Key>
+          <Property Name="ID_ProductImage" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ImagePath" Type="String" MaxLength="255" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DateAdded" Type="String" MaxLength="10" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="Self.FK__Products__Produc__49C3F6B7" FromRole="ProductImage" ToRole="Products" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="ID_Product" />
+          </Key>
+          <Property Name="ID_Product" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Category_ID" Type="Int32" Nullable="false" />
+          <Property Name="ProductName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="DescriptionProducts" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+          <Property Name="QuantityInStock" Type="Int32" Nullable="false" />
+          <Property Name="ProductImage_ID" Type="Int32" />
+          <Property Name="PriceHistory_ID" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Cheque" Relationship="Self.FK__Cheque__Product___59FA5E80" FromRole="Products" ToRole="Cheque" />
+          <NavigationProperty Name="Orders" Relationship="Self.FK__Orders__Product___5441852A" FromRole="Products" ToRole="Orders" />
+          <NavigationProperty Name="PriceHistory" Relationship="Self.FK__Products__PriceH__4AB81AF0" FromRole="Products" ToRole="PriceHistory" />
+          <NavigationProperty Name="ProductCategory" Relationship="Self.FK__Products__Catego__48CFD27E" FromRole="Products" ToRole="ProductCategory" />
+          <NavigationProperty Name="ProductImage" Relationship="Self.FK__Products__Produc__49C3F6B7" FromRole="Products" ToRole="ProductImage" />
+        </EntityType>
+        <EntityType Name="Roles">
+          <Key>
+            <PropertyRef Name="ID_Role" />
+          </Key>
+          <Property Name="ID_Role" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="RoleName" Type="String" MaxLength="25" FixedLength="false" Unicode="false" Nullable="false" />
+          <NavigationProperty Name="Authorisation" Relationship="Self.FK__Authorisa__Role___398D8EEE" FromRole="Roles" ToRole="Authorisation" />
+          <NavigationProperty Name="Users" Relationship="Self.FK__Users__Role_ID__3F466844" FromRole="Roles" ToRole="Users" />
+        </EntityType>
+        <EntityType Name="ShippingAddress">
+          <Key>
+            <PropertyRef Name="ID_Address" />
+          </Key>
+          <Property Name="ID_Address" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FullName" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="City_ID" Type="Int32" Nullable="false" />
+          <Property Name="Street" Type="String" MaxLength="30" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="IndexAddress" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Cities" Relationship="Self.FK__ShippingA__City___4F7CD00D" FromRole="ShippingAddress" ToRole="Cities" />
+          <NavigationProperty Name="Orders" Relationship="Self.FK__Orders__Address___5629CD9C" FromRole="ShippingAddress" ToRole="Orders" />
+        </EntityType>
+        <EntityType Name="Users">
+          <Key>
+            <PropertyRef Name="ID_User" />
+          </Key>
+          <Property Name="ID_User" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Authorisation_ID" Type="Int32" Nullable="false" />
+          <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="false" Nullable="false" />
+          <Property Name="Role_ID" Type="Int32" Nullable="false" />
+          <Property Name="PaymentMethod_ID" Type="Int32" />
+          <NavigationProperty Name="Authorisation" Relationship="Self.FK__Users__Authorisa__3E52440B" FromRole="Users" ToRole="Authorisation" />
+          <NavigationProperty Name="Orders" Relationship="Self.FK__Orders__User_ID__5535A963" FromRole="Users" ToRole="Orders" />
+          <NavigationProperty Name="PaymentMethod" Relationship="Self.FK__Users__PaymentMe__403A8C7D" FromRole="Users" ToRole="PaymentMethod" />
+          <NavigationProperty Name="Roles" Relationship="Self.FK__Users__Role_ID__3F466844" FromRole="Users" ToRole="Roles" />
+        </EntityType>
+        <Association Name="FK__Authorisa__Role___398D8EEE">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="Authorisation" Type="Self.Authorisation" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="ID_Role" />
+            </Principal>
+            <Dependent Role="Authorisation">
+              <PropertyRef Name="Role_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__Authorisa__3E52440B">
+          <End Role="Authorisation" Type="Self.Authorisation" Multiplicity="1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Authorisation">
+              <PropertyRef Name="ID_Authorisation" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="Authorisation_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Cheque__Order_ID__5AEE82B9">
+          <End Role="Orders" Type="Self.Orders" Multiplicity="1" />
+          <End Role="Cheque" Type="Self.Cheque" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Orders">
+              <PropertyRef Name="ID_Order" />
+            </Principal>
+            <Dependent Role="Cheque">
+              <PropertyRef Name="Order_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Cheque__Product___59FA5E80">
+          <End Role="Products" Type="Self.Products" Multiplicity="1" />
+          <End Role="Cheque" Type="Self.Cheque" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ID_Product" />
+            </Principal>
+            <Dependent Role="Cheque">
+              <PropertyRef Name="Product_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__ShippingA__City___4F7CD00D">
+          <End Role="Cities" Type="Self.Cities" Multiplicity="1" />
+          <End Role="ShippingAddress" Type="Self.ShippingAddress" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Cities">
+              <PropertyRef Name="ID_City" />
+            </Principal>
+            <Dependent Role="ShippingAddress">
+              <PropertyRef Name="City_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__Address___5629CD9C">
+          <End Role="ShippingAddress" Type="Self.ShippingAddress" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ShippingAddress">
+              <PropertyRef Name="ID_Address" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="Address_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__OrderSta__571DF1D5">
+          <End Role="OrderStatus" Type="Self.OrderStatus" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="OrderStatus">
+              <PropertyRef Name="ID_OrderStatus" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="OrderStatus_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__Product___5441852A">
+          <End Role="Products" Type="Self.Products" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="ID_Product" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="Product_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Orders__User_ID__5535A963">
+          <End Role="Users" Type="Self.Users" Multiplicity="1" />
+          <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Users">
+              <PropertyRef Name="ID_User" />
+            </Principal>
+            <Dependent Role="Orders">
+              <PropertyRef Name="User_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__PaymentMe__403A8C7D">
+          <End Role="PaymentMethod" Type="Self.PaymentMethod" Multiplicity="0..1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PaymentMethod">
+              <PropertyRef Name="ID_PaymentMethod" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="PaymentMethod_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__PriceH__4AB81AF0">
+          <End Role="PriceHistory" Type="Self.PriceHistory" Multiplicity="1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PriceHistory">
+              <PropertyRef Name="ID_PriceHistory" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="PriceHistory_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__Catego__48CFD27E">
+          <End Role="ProductCategory" Type="Self.ProductCategory" Multiplicity="1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductCategory">
+              <PropertyRef Name="ID_Category" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="Category_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Products__Produc__49C3F6B7">
+          <End Role="ProductImage" Type="Self.ProductImage" Multiplicity="0..1" />
+          <End Role="Products" Type="Self.Products" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ProductImage">
+              <PropertyRef Name="ID_ProductImage" />
+            </Principal>
+            <Dependent Role="Products">
+              <PropertyRef Name="ProductImage_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__Users__Role_ID__3F466844">
+          <End Role="Roles" Type="Self.Roles" Multiplicity="1" />
+          <End Role="Users" Type="Self.Users" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Roles">
+              <PropertyRef Name="ID_Role" />
+            </Principal>
+            <Dependent Role="Users">
+              <PropertyRef Name="Role_ID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="UNLV_CORPORATIONEntities4" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Authorisation" EntityType="Self.Authorisation" />
+          <EntitySet Name="Cheque" EntityType="Self.Cheque" />
+          <EntitySet Name="Cities" EntityType="Self.Cities" />
+          <EntitySet Name="Orders" EntityType="Self.Orders" />
+          <EntitySet Name="OrderStatus" EntityType="Self.OrderStatus" />
+          <EntitySet Name="PaymentMethod" EntityType="Self.PaymentMethod" />
+          <EntitySet Name="PriceHistory" EntityType="Self.PriceHistory" />
+          <EntitySet Name="ProductCategory" EntityType="Self.ProductCategory" />
+          <EntitySet Name="ProductImage" EntityType="Self.ProductImage" />
+          <EntitySet Name="Products" EntityType="Self.Products" />
+          <EntitySet Name="Roles" EntityType="Self.Roles" />
+          <EntitySet Name="ShippingAddress" EntityType="Self.ShippingAddress" />
+          <EntitySet Name="Users" EntityType="Self.Users" />
+          <AssociationSet Name="FK__Authorisa__Role___398D8EEE" Association="Self.FK__Authorisa__Role___398D8EEE">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="Authorisation" EntitySet="Authorisation" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__Authorisa__3E52440B" Association="Self.FK__Users__Authorisa__3E52440B">
+            <End Role="Authorisation" EntitySet="Authorisation" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Cheque__Order_ID__5AEE82B9" Association="Self.FK__Cheque__Order_ID__5AEE82B9">
+            <End Role="Orders" EntitySet="Orders" />
+            <End Role="Cheque" EntitySet="Cheque" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Cheque__Product___59FA5E80" Association="Self.FK__Cheque__Product___59FA5E80">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Cheque" EntitySet="Cheque" />
+          </AssociationSet>
+          <AssociationSet Name="FK__ShippingA__City___4F7CD00D" Association="Self.FK__ShippingA__City___4F7CD00D">
+            <End Role="Cities" EntitySet="Cities" />
+            <End Role="ShippingAddress" EntitySet="ShippingAddress" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__Address___5629CD9C" Association="Self.FK__Orders__Address___5629CD9C">
+            <End Role="ShippingAddress" EntitySet="ShippingAddress" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__OrderSta__571DF1D5" Association="Self.FK__Orders__OrderSta__571DF1D5">
+            <End Role="OrderStatus" EntitySet="OrderStatus" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__Product___5441852A" Association="Self.FK__Orders__Product___5441852A">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Orders__User_ID__5535A963" Association="Self.FK__Orders__User_ID__5535A963">
+            <End Role="Users" EntitySet="Users" />
+            <End Role="Orders" EntitySet="Orders" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__PaymentMe__403A8C7D" Association="Self.FK__Users__PaymentMe__403A8C7D">
+            <End Role="PaymentMethod" EntitySet="PaymentMethod" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__PriceH__4AB81AF0" Association="Self.FK__Products__PriceH__4AB81AF0">
+            <End Role="PriceHistory" EntitySet="PriceHistory" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__Catego__48CFD27E" Association="Self.FK__Products__Catego__48CFD27E">
+            <End Role="ProductCategory" EntitySet="ProductCategory" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Products__Produc__49C3F6B7" Association="Self.FK__Products__Produc__49C3F6B7">
+            <End Role="ProductImage" EntitySet="ProductImage" />
+            <End Role="Products" EntitySet="Products" />
+          </AssociationSet>
+          <AssociationSet Name="FK__Users__Role_ID__3F466844" Association="Self.FK__Users__Role_ID__3F466844">
+            <End Role="Roles" EntitySet="Roles" />
+            <End Role="Users" EntitySet="Users" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="Хранилище UNLV_CORPORATIONModelContainer" CdmEntityContainer="UNLV_CORPORATIONEntities4">
+          <EntitySetMapping Name="Authorisation">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Authorisation">
+              <MappingFragment StoreEntitySet="Authorisation">
+                <ScalarProperty Name="ID_Authorisation" ColumnName="ID_Authorisation" />
+                <ScalarProperty Name="UserLogin" ColumnName="UserLogin" />
+                <ScalarProperty Name="PasswordHash" ColumnName="PasswordHash" />
+                <ScalarProperty Name="Role_ID" ColumnName="Role_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Cheque">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Cheque">
+              <MappingFragment StoreEntitySet="Cheque">
+                <ScalarProperty Name="ID_Cheque" ColumnName="ID_Cheque" />
+                <ScalarProperty Name="DateChequeIssue" ColumnName="DateChequeIssue" />
+                <ScalarProperty Name="TotalPrice" ColumnName="TotalPrice" />
+                <ScalarProperty Name="Product_ID" ColumnName="Product_ID" />
+                <ScalarProperty Name="Order_ID" ColumnName="Order_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Cities">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Cities">
+              <MappingFragment StoreEntitySet="Cities">
+                <ScalarProperty Name="ID_City" ColumnName="ID_City" />
+                <ScalarProperty Name="CityName" ColumnName="CityName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Orders">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Orders">
+              <MappingFragment StoreEntitySet="Orders">
+                <ScalarProperty Name="ID_Order" ColumnName="ID_Order" />
+                <ScalarProperty Name="User_ID" ColumnName="User_ID" />
+                <ScalarProperty Name="DateOrder" ColumnName="DateOrder" />
+                <ScalarProperty Name="Address_ID" ColumnName="Address_ID" />
+                <ScalarProperty Name="OrderStatus_ID" ColumnName="OrderStatus_ID" />
+                <ScalarProperty Name="Product_ID" ColumnName="Product_ID" />
+                <ScalarProperty Name="ProductsOnOrder" ColumnName="ProductsOnOrder" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="OrderStatus">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.OrderStatus">
+              <MappingFragment StoreEntitySet="OrderStatus">
+                <ScalarProperty Name="ID_OrderStatus" ColumnName="ID_OrderStatus" />
+                <ScalarProperty Name="StatusName" ColumnName="StatusName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PaymentMethod">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.PaymentMethod">
+              <MappingFragment StoreEntitySet="PaymentMethod">
+                <ScalarProperty Name="ID_PaymentMethod" ColumnName="ID_PaymentMethod" />
+                <ScalarProperty Name="CardNumber" ColumnName="CardNumber" />
+                <ScalarProperty Name="ExpiryDate" ColumnName="ExpiryDate" />
+                <ScalarProperty Name="CardholderName" ColumnName="CardholderName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PriceHistory">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.PriceHistory">
+              <MappingFragment StoreEntitySet="PriceHistory">
+                <ScalarProperty Name="ID_PriceHistory" ColumnName="ID_PriceHistory" />
+                <ScalarProperty Name="OldPrice" ColumnName="OldPrice" />
+                <ScalarProperty Name="NewPrice" ColumnName="NewPrice" />
+                <ScalarProperty Name="DateRevisions" ColumnName="DateRevisions" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductCategory">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.ProductCategory">
+              <MappingFragment StoreEntitySet="ProductCategory">
+                <ScalarProperty Name="ID_Category" ColumnName="ID_Category" />
+                <ScalarProperty Name="CategoryName" ColumnName="CategoryName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ProductImage">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.ProductImage">
+              <MappingFragment StoreEntitySet="ProductImage">
+                <ScalarProperty Name="ID_ProductImage" ColumnName="ID_ProductImage" />
+                <ScalarProperty Name="ImagePath" ColumnName="ImagePath" />
+                <ScalarProperty Name="DateAdded" ColumnName="DateAdded" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Products">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Products">
+              <MappingFragment StoreEntitySet="Products">
+                <ScalarProperty Name="ID_Product" ColumnName="ID_Product" />
+                <ScalarProperty Name="Category_ID" ColumnName="Category_ID" />
+                <ScalarProperty Name="ProductName" ColumnName="ProductName" />
+                <ScalarProperty Name="DescriptionProducts" ColumnName="DescriptionProducts" />
+                <ScalarProperty Name="QuantityInStock" ColumnName="QuantityInStock" />
+                <ScalarProperty Name="ProductImage_ID" ColumnName="ProductImage_ID" />
+                <ScalarProperty Name="PriceHistory_ID" ColumnName="PriceHistory_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Roles">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Roles">
+              <MappingFragment StoreEntitySet="Roles">
+                <ScalarProperty Name="ID_Role" ColumnName="ID_Role" />
+                <ScalarProperty Name="RoleName" ColumnName="RoleName" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ShippingAddress">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.ShippingAddress">
+              <MappingFragment StoreEntitySet="ShippingAddress">
+                <ScalarProperty Name="ID_Address" ColumnName="ID_Address" />
+                <ScalarProperty Name="FullName" ColumnName="FullName" />
+                <ScalarProperty Name="City_ID" ColumnName="City_ID" />
+                <ScalarProperty Name="Street" ColumnName="Street" />
+                <ScalarProperty Name="IndexAddress" ColumnName="IndexAddress" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Users">
+            <EntityTypeMapping TypeName="UNLV_CORPORATIONModel.Users">
+              <MappingFragment StoreEntitySet="Users">
+                <ScalarProperty Name="ID_User" ColumnName="ID_User" />
+                <ScalarProperty Name="Authorisation_ID" ColumnName="Authorisation_ID" />
+                <ScalarProperty Name="Email" ColumnName="Email" />
+                <ScalarProperty Name="Role_ID" ColumnName="Role_ID" />
+                <ScalarProperty Name="PaymentMethod_ID" ColumnName="PaymentMethod_ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="Нет" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
