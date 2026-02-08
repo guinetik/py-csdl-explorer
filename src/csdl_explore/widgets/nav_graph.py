@@ -169,8 +169,9 @@ class NavigationGraph(Widget):
         pan_x, pan_y, zoom = self._viewport
 
         # Base world viewport size (will be scaled by zoom)
-        base_world_width = 2.5  # Show ~2.5 units of world space
-        base_world_height = 2.5
+        # Increased to match larger world coordinates from scale=4.0
+        base_world_width = 6.0  # Show ~6 units of world space
+        base_world_height = 6.0
 
         # Apply zoom (higher zoom = smaller viewport = more detail)
         visible_width = base_world_width / zoom
