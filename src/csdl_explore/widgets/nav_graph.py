@@ -280,6 +280,8 @@ class NavigationGraph(Widget):
     def _box_would_collide(self, grid: dict, x: int, y: int, width: int, height: int) -> bool:
         """Check if a box at the given position would collide with existing grid content.
 
+        Includes 1-cell padding on all sides to ensure boxes don't touch.
+
         Args:
             grid: The rendering grid.
             x: Left column position.
@@ -288,10 +290,11 @@ class NavigationGraph(Widget):
             height: Box height in rows.
 
         Returns:
-            True if any cell in the box region is already occupied.
+            True if any cell in the box region (plus padding) is already occupied.
         """
-        for row in range(y, y + height):
-            for col in range(x, x + width):
+        # Check box region plus 1-cell padding on all sides
+        for row in range(max(0, y - 1), y + height + 1):
+            for col in range(max(0, x - 1), x + width + 1):
                 if (row, col) in grid:
                     return True
         return False
