@@ -106,22 +106,6 @@ class CSDLExplorerApp(App):
         padding: 0 1;
     }
 
-    #welcome-tab {
-        width: 100%;
-        height: 100%;
-    }
-
-    #welcome-stats {
-        dock: top;
-        height: auto;
-        padding: 1 2;
-        background: $surface;
-    }
-
-    #nav-graph {
-        height: 1fr;
-    }
-
     TabbedContent {
         height: 1fr;
     }
@@ -198,6 +182,8 @@ class CSDLExplorerApp(App):
                 pass
 
     def compose(self) -> ComposeResult:
+        with open("D:/compose_debug.log", "a") as f:
+            f.write("DEBUG: CSDLExplorerApp.compose() starting\n")
         yield Header()
 
         with Horizontal(id="app-grid"):
@@ -211,11 +197,15 @@ class CSDLExplorerApp(App):
                 )
 
             with Vertical(id="main"):
-                with TabbedContent(id="tabs"):
-                    yield WelcomeTabPane(self.explorer)
+                yield TabbedContent(id="tabs")
                 yield FilterBar(id="filter-bar")
 
         yield Footer()
+
+    def on_mount(self) -> None:
+        """Add welcome tab after mount."""
+        tabs = self.query_one("#tabs", TabbedContent)
+        tabs.add_pane(WelcomeTabPane(self.explorer))
 
     # ── Tree selection → open entity tab ─────────────────────────
 

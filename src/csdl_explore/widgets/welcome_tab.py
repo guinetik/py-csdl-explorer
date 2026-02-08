@@ -1,6 +1,7 @@
 """Welcome tab pane with stats and navigation graph."""
 
-from textual.widgets import TabPane, Static
+from textual.widgets import TabPane, Static, TabbedContent
+from textual.containers import Vertical
 
 from ..explorer import CSDLExplorer
 from .nav_graph import NavigationGraph
@@ -38,5 +39,8 @@ class WelcomeTabPane(TabPane):
             f"[#00dc82]Custom Fields:[/] {total_custom:,}\n"
         )
 
-        yield Static(stats_text, id="welcome-stats")
-        yield NavigationGraph(self.explorer, id="nav-graph")
+        # Use TabbedContent structure like EntityTabPane
+        with TabbedContent(id="welcome-subtabs"):
+            with TabPane("Overview", id="welcome-overview"):
+                yield Static(stats_text, id="welcome-stats")
+                yield NavigationGraph(self.explorer, id="nav-graph")
