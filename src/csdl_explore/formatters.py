@@ -477,10 +477,12 @@ def build_navigation_graph(explorer: "CSDLExplorer") -> dict:
         }
 
     # Compute layout using spring/force-directed algorithm
+    # For large graphs, increase k to prevent overlapping
     positions = nx.spring_layout(
         graph,
-        k=1.5,  # Optimal distance between nodes
-        iterations=50,  # Layout quality vs speed
+        k=4.0,  # Optimal distance between nodes (increased for large graphs)
+        iterations=100,  # More iterations for better convergence
+        scale=2.0,  # Scale layout to spread nodes further
         seed=42,  # Reproducible layouts
     )
 
