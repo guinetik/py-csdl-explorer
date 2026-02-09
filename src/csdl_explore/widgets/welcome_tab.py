@@ -1,14 +1,14 @@
-"""Welcome tab pane with stats and navigation graph."""
+"""Welcome tab pane with stats and global search."""
 
 from textual.widgets import TabPane, Static, TabbedContent
 from textual.containers import Vertical
 
 from ..explorer import CSDLExplorer
-from .nav_graph import NavigationGraph
+from .global_search import GlobalSearch
 
 
 class WelcomeTabPane(TabPane):
-    """Welcome screen tab showing metadata stats and navigation graph.
+    """Welcome screen tab showing metadata stats and global search.
 
     Args:
         explorer: The CSDL explorer instance.
@@ -26,7 +26,7 @@ class WelcomeTabPane(TabPane):
         background: $surface;
     }
 
-    WelcomeTabPane #nav-graph {
+    WelcomeTabPane #global-search {
         height: 1fr;
     }
     """
@@ -36,10 +36,10 @@ class WelcomeTabPane(TabPane):
         self.explorer = explorer
 
     def on_mount(self) -> None:
-        """Set focus to the navigation graph when tab is mounted."""
-        # Give focus to the graph so keyboard controls work
-        graph = self.query_one("#nav-graph", NavigationGraph)
-        graph.focus()
+        """Set focus to the global search when tab is mounted."""
+        # Give focus to the search so user can start typing immediately
+        search = self.query_one("#global-search", GlobalSearch)
+        search.focus()
 
     def compose(self):
         # Calculate stats
@@ -66,4 +66,4 @@ class WelcomeTabPane(TabPane):
         with TabbedContent(id="welcome-subtabs"):
             with TabPane("Overview", id="welcome-overview"):
                 yield Static(stats_text, id="welcome-stats")
-                yield NavigationGraph(self.explorer, id="nav-graph")
+                yield GlobalSearch(self.explorer, id="global-search")

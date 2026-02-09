@@ -19,6 +19,7 @@ from .picklist_values_tab import PicklistValuesTab
 from .filterable_table import FilterableDataTable
 from .json_viewer_modal import JsonViewerModal
 from .nav_graph import NavigationGraph
+from .global_search import GlobalSearch
 from .welcome_tab import WelcomeTabPane
 
 __all__ = [
@@ -28,5 +29,5 @@ __all__ = [
     "DetailsTab", "PropertiesTab", "QueryTab",
     "PicklistOverviewTab", "PicklistEntitiesTab",
     "PicklistImpactTab", "PicklistValuesTab",
-    "JsonViewerModal", "NavigationGraph", "WelcomeTabPane",
+    "JsonViewerModal", "NavigationGraph", "GlobalSearch", "WelcomeTabPane",
 ]

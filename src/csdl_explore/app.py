@@ -23,7 +23,7 @@ from .sap_client import SAPConnection, load_env_file
 from .themes import ALL_THEMES, THEME_NAMES
 from .widgets import (
     EntityTree, EntityTabPane, PicklistTabPane, SearchResults, FilterBar,
-    WelcomeTabPane, NavigationGraph
+    WelcomeTabPane, GlobalSearch
 )
 
 MAX_TABS = 15
@@ -226,9 +226,9 @@ class CSDLExplorerApp(App):
         """Handle search result selection — open entity in a tab."""
         self._open_entity_tab(event.entity_name)
 
-    @on(NavigationGraph.EntitySelected)
-    def on_graph_entity_selected(self, event) -> None:
-        """Handle navigation graph node selection — open entity in a tab."""
+    @on(GlobalSearch.EntitySelected)
+    def on_global_search_entity_selected(self, event: GlobalSearch.EntitySelected) -> None:
+        """Handle global search selection — open entity in a tab."""
         self._open_entity_tab(event.entity_name)
 
     # ── Tab management ───────────────────────────────────────────
@@ -364,10 +364,10 @@ class CSDLExplorerApp(App):
         elif pane.id == "welcome-tab":
             self.sub_title = f"{self.explorer.entity_count} entities"
             self.query_one("#filter-bar", FilterBar).hide()
-            # Focus the navigation graph so keyboard controls work
+            # Focus the global search so user can start typing
             try:
-                graph = pane.query_one("#nav-graph", NavigationGraph)
-                graph.focus()
+                search = pane.query_one("#global-search", GlobalSearch)
+                search.focus()
             except Exception:
                 pass
 
