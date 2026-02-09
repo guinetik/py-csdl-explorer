@@ -235,12 +235,17 @@ class NavigationGraph(Widget):
             # Determine box representation based on zoom
             is_selected = node_id == self._selected_node
             if zoom >= 0.7:
-                # Full box - check for collision first
+                # Full box - check bounds and collision
                 box_width = len(node_id) + 4
                 box_height = 3
-                if not self._box_would_collide(grid, screen_x, screen_y, box_width, box_height):
-                    self._render_node_box(grid, node_id, screen_x, screen_y, is_selected)
-                    node_boxes[node_id] = (screen_y, screen_x, box_width, box_height)
+
+                # Only render if entire box fits on screen (prevent clipping at edges)
+                if (screen_x >= 0 and screen_y >= 0 and
+                    screen_x + box_width <= widget_width and
+                    screen_y + box_height <= widget_height):
+                    if not self._box_would_collide(grid, screen_x, screen_y, box_width, box_height):
+                        self._render_node_box(grid, node_id, screen_x, screen_y, is_selected)
+                        node_boxes[node_id] = (screen_y, screen_x, box_width, box_height)
             elif zoom >= 0.4:
                 # Single char
                 grid[(screen_y, screen_x)] = f"[{'#00dc82' if is_selected else '#666666'}][{node_id[0]}][/]"
