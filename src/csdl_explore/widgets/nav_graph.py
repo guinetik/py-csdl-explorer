@@ -230,25 +230,47 @@ class NavigationGraph(Widget):
         if world_height == 0:
             world_height = 1
 
-        # Render nodes
+        # First pass: Calculate screen positions for ALL visible nodes
+        node_positions = {}  # node_id -> (screen_x, screen_y, box_width, box_height)
         for node in visible_nodes:
             node_id = node["id"]
             x, y = positions[node_id]
 
             # Convert world coordinates to screen coordinates
-            # Map from world space [min, max] to screen space [0, width/height]
             normalized_x = (x - visible_bounds["min_x"]) / world_width
             normalized_y = (y - visible_bounds["min_y"]) / world_height
             screen_x = int(normalized_x * widget_width)
             screen_y = int(normalized_y * widget_height)
 
-            # Determine box representation based on zoom
-            is_selected = node_id == self._selected_node
             if zoom >= 0.7:
-                # Full box - check bounds and collision
                 box_width = len(node_id) + 4
                 box_height = 3
+                node_positions[node_id] = (screen_y, screen_x, box_width, box_height)
+            elif zoom >= 0.4:
+                node_positions[node_id] = (screen_y, screen_x, 1, 1)
+            else:
+                node_positions[node_id] = (screen_y, screen_x, 1, 1)
 
+        # Second pass: Render edges FIRST (so boxes render on top)
+        if zoom >= 0.7:  # Only show edges at full box zoom level
+            for edge in self._graph_data["edges"]:
+                source = edge["source"]
+                target = edge["target"]
+                # Draw edge if both nodes are visible
+                if source in node_positions and target in node_positions:
+                    self._render_edge(grid, node_positions[source], node_positions[target])
+
+        # Third pass: Render boxes on top of edges (with collision detection)
+        for node in visible_nodes:
+            node_id = node["id"]
+            if node_id not in node_positions:
+                continue
+
+            screen_y, screen_x, box_width, box_height = node_positions[node_id]
+            is_selected = node_id == self._selected_node
+
+            if zoom >= 0.7:
+                # Full box - check bounds and collision
                 # Only render if entire box fits on screen (prevent clipping at edges)
                 if (screen_x >= 0 and screen_y >= 0 and
                     screen_x + box_width <= widget_width and
@@ -264,15 +286,6 @@ class NavigationGraph(Widget):
                 # Dot
                 grid[(screen_y, screen_x)] = f"[{'#00dc82' if is_selected else '#666666'}]•[/]"
                 node_boxes[node_id] = (screen_y, screen_x, 1, 1)
-
-        # Render edges (only between fully visible boxes)
-        if zoom >= 0.7:  # Only show edges at full box zoom level
-            for edge in self._graph_data["edges"]:
-                source = edge["source"]
-                target = edge["target"]
-                # Only draw edge if both boxes were rendered (in node_boxes dict)
-                if source in node_boxes and target in node_boxes:
-                    self._render_edge(grid, node_boxes[source], node_boxes[target])
 
         # Convert grid to text
         if grid:
