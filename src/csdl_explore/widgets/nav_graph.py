@@ -137,14 +137,24 @@ class NavigationGraph(Widget):
         if self._node_list:
             self._selected_node = self._node_list[0]
 
-        # Center viewport on graph centroid
+        # Center viewport on most connected node (hub)
         positions = graph_data["positions"]
-        if positions:
-            x_coords = [pos[0] for pos in positions.values()]
-            y_coords = [pos[1] for pos in positions.values()]
-            centroid_x = sum(x_coords) / len(x_coords)
-            centroid_y = sum(y_coords) / len(y_coords)
-            self._viewport = (centroid_x, centroid_y, 1.0)
+        if positions and graph_data["nodes"]:
+            # Find node with most total connections
+            hub_node = max(
+                graph_data["nodes"],
+                key=lambda n: n["incoming_count"] + n["outgoing_count"]
+            )
+            hub_pos = positions.get(hub_node["id"])
+            if hub_pos:
+                self._viewport = (hub_pos[0], hub_pos[1], 1.0)
+            else:
+                # Fallback to centroid if hub position not found
+                x_coords = [pos[0] for pos in positions.values()]
+                y_coords = [pos[1] for pos in positions.values()]
+                centroid_x = sum(x_coords) / len(x_coords)
+                centroid_y = sum(y_coords) / len(y_coords)
+                self._viewport = (centroid_x, centroid_y, 1.0)
 
         # Hide loading, show canvas
         self.query_one(".graph-loading", Static).display = False
@@ -439,17 +449,26 @@ class NavigationGraph(Widget):
             self.post_message(self.EntitySelected(self._selected_node))
 
     def action_reset(self) -> None:
-        """Reset viewport to default (centered, zoom 1.0)."""
+        """Reset viewport to default (centered on hub node, zoom 1.0)."""
         if not self._graph_data or not self._graph_data["positions"]:
             return
 
+        # Center on most connected node (hub)
         positions = self._graph_data["positions"]
-        x_coords = [pos[0] for pos in positions.values()]
-        y_coords = [pos[1] for pos in positions.values()]
-        centroid_x = sum(x_coords) / len(x_coords)
-        centroid_y = sum(y_coords) / len(y_coords)
+        if self._graph_data["nodes"]:
+            hub_node = max(
+                self._graph_data["nodes"],
+                key=lambda n: n["incoming_count"] + n["outgoing_count"]
+            )
+            hub_pos = positions.get(hub_node["id"])
+            if hub_pos:
+                self._viewport = (hub_pos[0], hub_pos[1], 1.0)
+            else:
+                # Fallback to centroid
+                x_coords = [pos[0] for pos in positions.values()]
+                y_coords = [pos[1] for pos in positions.values()]
+                self._viewport = (sum(x_coords) / len(x_coords), sum(y_coords) / len(y_coords), 1.0)
 
-        self._viewport = (centroid_x, centroid_y, 1.0)
         self._zoom_index = 4  # Reset to 1.0
         self.zoom_level = 1.0
         self._render_graph()
