@@ -96,8 +96,8 @@ class NavigationGraph(Widget):
         self._selected_node: str | None = None
         self._node_list: list[str] = []
         self._world_bounds = {"min_x": 0, "max_x": 0, "min_y": 0, "max_y": 0}
-        self._zoom_levels = [0.25, 0.5, 0.75, 1.0, 1.5]
-        self._zoom_index = 3  # Start at 1.0
+        self._zoom_levels = [0.25, 0.4, 0.6, 0.8, 1.0, 1.2, 1.5, 2.0]
+        self._zoom_index = 4  # Start at 1.0
 
     def compose(self):
         yield Static("Building graph...", classes="graph-loading")
@@ -221,7 +221,6 @@ class NavigationGraph(Widget):
             world_height = 1
 
         # Render nodes
-        debug_info = []
         for node in visible_nodes:
             node_id = node["id"]
             x, y = positions[node_id]
@@ -232,9 +231,6 @@ class NavigationGraph(Widget):
             normalized_y = (y - visible_bounds["min_y"]) / world_height
             screen_x = int(normalized_x * widget_width)
             screen_y = int(normalized_y * widget_height)
-
-            if len(debug_info) < 3:
-                debug_info.append(f"{node_id}: world({x:.2f},{y:.2f}) -> screen({screen_x},{screen_y})")
 
             # Determine box representation based on zoom
             is_selected = node_id == self._selected_node
@@ -269,11 +265,7 @@ class NavigationGraph(Widget):
             max_col = max(pos[1] for pos in grid.keys())
 
             lines = []
-            # Add debug info at top
-            lines.append(f"[dim]Size: {widget_width}x{widget_height} | Nodes: {len(visible_nodes)} | Zoom: {zoom:.2f}[/]")
-            for info in debug_info:
-                lines.append(f"[dim]{info}[/]")
-
+            # Render the graph grid
             for row in range(max_row + 1):
                 line_parts = []
                 for col in range(max_col + 1):
@@ -391,7 +383,7 @@ class NavigationGraph(Widget):
     def action_pan(self, direction: str = "up") -> None:
         """Pan the viewport in the given direction."""
         pan_x, pan_y, zoom = self._viewport
-        step = 5 / zoom  # Pan faster when zoomed in
+        step = 0.5 / zoom  # Smooth panning - about 1/12th of viewport
 
         if direction == "up":
             pan_y -= step
@@ -453,7 +445,7 @@ class NavigationGraph(Widget):
         centroid_y = sum(y_coords) / len(y_coords)
 
         self._viewport = (centroid_x, centroid_y, 1.0)
-        self._zoom_index = 3  # Reset to 1.0
+        self._zoom_index = 4  # Reset to 1.0
         self.zoom_level = 1.0
         self._render_graph()
 
