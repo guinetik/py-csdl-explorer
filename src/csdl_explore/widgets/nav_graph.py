@@ -265,14 +265,14 @@ class NavigationGraph(Widget):
                 grid[(screen_y, screen_x)] = f"[{'#00dc82' if is_selected else '#666666'}]•[/]"
                 node_boxes[node_id] = (screen_y, screen_x, 1, 1)
 
-        # Render edges (DISABLED - edge rendering needs fixing)
-        # TODO: Fix edge rendering logic to prevent stray lines
-        # if zoom >= 0.4:
-        #     for edge in self._graph_data["edges"]:
-        #         source = edge["source"]
-        #         target = edge["target"]
-        #         if source in node_boxes and target in node_boxes:
-        #             self._render_edge(grid, node_boxes[source], node_boxes[target])
+        # Render edges (only between fully visible boxes)
+        if zoom >= 0.7:  # Only show edges at full box zoom level
+            for edge in self._graph_data["edges"]:
+                source = edge["source"]
+                target = edge["target"]
+                # Only draw edge if both boxes were rendered (in node_boxes dict)
+                if source in node_boxes and target in node_boxes:
+                    self._render_edge(grid, node_boxes[source], node_boxes[target])
 
         # Convert grid to text
         if grid:
@@ -373,25 +373,26 @@ class NavigationGraph(Widget):
         ty = t_row + t_height // 2
 
         # Draw horizontal then vertical line (orthogonal routing)
+        # Use dim color so edges don't overpower boxes
         color = "#444444"
 
         # Horizontal line
         start_x = min(sx, tx)
         end_x = max(sx, tx)
         for col in range(start_x, end_x + 1):
-            if (sy, col) not in grid or grid[(sy, col)] == " ":
+            cell = grid.get((sy, col), " ")
+            # Only draw in empty cells (don't overwrite box characters)
+            if cell == " " or not cell.strip():
                 grid[(sy, col)] = f"[{color}]─[/]"
-            elif grid[(sy, col)] != " " and "─" not in grid[(sy, col)]:
-                grid[(sy, col)] = f"[{color}]┼[/]"  # Intersection
 
         # Vertical line
         start_y = min(sy, ty)
         end_y = max(sy, ty)
         for row in range(start_y, end_y + 1):
-            if (row, tx) not in grid or grid[(row, tx)] == " ":
+            cell = grid.get((row, tx), " ")
+            # Only draw in empty cells (don't overwrite box characters)
+            if cell == " " or not cell.strip():
                 grid[(row, tx)] = f"[{color}]│[/]"
-            elif grid[(row, tx)] != " " and "│" not in grid[(row, tx)]:
-                grid[(row, tx)] = f"[{color}]┼[/]"  # Intersection
 
     # Actions
 
