@@ -415,5 +415,79 @@ def _validate_query_flags(flags: dict[str, str]) -> None:
             sys.exit(1)
 
 
+def run_query_command(
+    entity_name: str,
+    query_flags: dict[str, str],
+    metadata_file: Path | None,
+    cli_env: dict[str, str],
+) -> None:
+    """Execute an OData query and print JSON results to stdout.
+
+    Args:
+        entity_name: The entity set name (e.g. ``"EmpJob"``).
+        query_flags: Parsed query flags (filter, select, orderby, etc.).
+        metadata_file: Resolved path to the metadata XML file.
+        cli_env: Connection overrides from CLI flags (``SAP_*`` keys).
+    """
+    from .sap_client import SAPConnection, SAPClient, load_env_file
+    from .formatters import build_odata_query_params
+
+    # Validate flags
+    _validate_query_flags(query_flags)
+
+    # Build env dict: .env file as base, CLI flags as overrides
+    env = {}
+    if metadata_file:
+        env_path = metadata_file.with_suffix('.env')
+        if env_path.exists():
+            env = load_env_file(env_path)
+    env.update(cli_env)
+
+    # Build connection
+    connection = SAPConnection.from_env_dict(env)
+    if not connection.base_url:
+        console.print(
+            "[red]Error: No base URL configured.[/]\n"
+            "[dim]Provide --base-url or create a .env file alongside your metadata XML "
+            "with SAP_BASE_URL=...[/]"
+        )
+        sys.exit(1)
+
+    # Convert query flags to OData params
+    params_dict = {
+        'selected': [s.strip() for s in query_flags.get('select', '').split(',')
+                     if s.strip()],
+        'filter_expr': query_flags.get('filter', ''),
+        'orderby_prop': query_flags.get('orderby', ''),
+        'orderby_dir': query_flags.get('orderby_dir', 'asc'),
+        'expanded': [e.strip() for e in query_flags.get('expand', '').split(',')
+                     if e.strip()],
+        'top': query_flags.get('top', '20'),
+        'asof_date': query_flags.get('asof_date', ''),
+        'from_date': query_flags.get('from_date', ''),
+        'to_date': query_flags.get('to_date', ''),
+    }
+
+    params = build_odata_query_params(**params_dict)
+
+    # Execute query
+    async def _fetch():
+        client = SAPClient(connection)
+        try:
+            await client.authenticate()
+            return await client.query_entity(entity_name, params)
+        finally:
+            await client.close()
+
+    try:
+        results, full_url, raw_text, content_type = asyncio.run(_fetch())
+    except Exception as e:
+        console.print(f"[red]Error executing query: {e}[/]")
+        sys.exit(1)
+
+    # Output JSON to stdout
+    print(json.dumps(results, indent=2, ensure_ascii=False))
+
+
 if __name__ == "__main__":
     main()
