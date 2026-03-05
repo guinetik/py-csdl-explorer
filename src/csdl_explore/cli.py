@@ -2,6 +2,8 @@
 CLI entry point for CSDL Explorer.
 """
 
+import asyncio
+import json
 import sys
 from pathlib import Path
 
@@ -25,6 +27,11 @@ Explore OData $metadata to discover entities, fields, and navigation properties.
 [bold]Options:[/]
     --file <file>      Path to metadata XML file
     --tui              Launch full Textual TUI (requires: pip install csdl-explore[tui])
+    --base-url <url>   OData service base URL (overrides .env)
+    --auth-type <type> Auth type: none, bearer, basic, oauth2
+    --bearer-token <t> Bearer token for authentication
+    --username <user>  Username for basic auth
+    --password <pass>  Password for basic auth
 
 [bold]Commands:[/]
     interactive        Start interactive mode (default, Rich-based)
@@ -38,6 +45,8 @@ Explore OData $metadata to discover entities, fields, and navigation properties.
     nav <name>         Show navigation properties
     diff <e1> <e2>     Compare two entities
     path <name>        Suggest JSON paths
+    picklists          List all picklist names and their entities (JSON)
+    picklist <name>    Fetch picklist values as JSON (requires connection)
     emp                List Emp* entities (SAP SuccessFactors)
     per                List Per* entities (SAP SuccessFactors)
 
@@ -59,6 +68,12 @@ Explore OData $metadata to discover entities, fields, and navigation properties.
 
     # Compare two similar entities
     csdl-explore metadata.xml diff EmpCompensation EmpPayCompRecurring
+
+    # Fetch picklist values (reads connection from .env)
+    csdl-explore metadata.xml picklist ecJobCode
+
+    # Fetch picklist values with inline connection
+    csdl-explore metadata.xml --base-url https://api.example.com/odata/v2 --auth-type bearer --bearer-token TOKEN picklist ecJobCode
 """
 
 
@@ -75,6 +90,16 @@ def main():
     use_textual_tui = False
     command = 'interactive'
     cmd_args = []
+    cli_env = {}
+
+    # Connection flags that take a value → env key mapping
+    _CONN_FLAGS = {
+        '--base-url': 'SAP_BASE_URL',
+        '--auth-type': 'SAP_AUTH_TYPE',
+        '--bearer-token': 'SAP_BEARER_TOKEN',
+        '--username': 'SAP_USERNAME',
+        '--password': 'SAP_PASSWORD',
+    }
 
     i = 0
     while i < len(args):
@@ -90,6 +115,13 @@ def main():
         elif arg == '--tui':
             use_textual_tui = True
             i += 1
+
+        elif arg in _CONN_FLAGS:
+            if i + 1 >= len(args):
+                console.print(f"[red]Error: {arg} requires a value[/]")
+                sys.exit(1)
+            cli_env[_CONN_FLAGS[arg]] = args[i + 1]
+            i += 2
 
         elif arg.startswith('--'):
             console.print(f"[red]Unknown option: {arg}[/]")
@@ -112,13 +144,19 @@ def main():
         command = 'interactive'
 
     if metadata_file:
-        run_file_mode(metadata_file, command, cmd_args, use_textual_tui)
+        run_file_mode(metadata_file, command, cmd_args, use_textual_tui, cli_env)
     else:
         console.print(HELP_TEXT)
         sys.exit(1)
 
 
-def run_file_mode(metadata_file: Path, command: str, cmd_args: list[str], use_textual_tui: bool = False):
+def run_file_mode(
+    metadata_file: Path,
+    command: str,
+    cmd_args: list[str],
+    use_textual_tui: bool = False,
+    cli_env: dict[str, str] | None = None,
+):
     """Run using metadata file directly."""
     metadata_file = metadata_file.resolve()
 
@@ -135,7 +173,7 @@ def run_file_mode(metadata_file: Path, command: str, cmd_args: list[str], use_te
         else:
             repl.run_interactive(explorer)
     else:
-        run_command(explorer, command, cmd_args)
+        run_command(explorer, command, cmd_args, metadata_file, cli_env or {})
 
 
 def run_textual_app(explorer: CSDLExplorer):
@@ -150,13 +188,21 @@ def run_textual_app(explorer: CSDLExplorer):
         sys.exit(1)
 
 
-def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
+def run_command(
+    explorer: CSDLExplorer,
+    command: str,
+    args: list[str],
+    metadata_file: Path | None = None,
+    cli_env: dict[str, str] | None = None,
+):
     """Execute a single CLI command and print results to stdout.
 
     Args:
         explorer: Initialised CSDL explorer instance.
         command: Command name (e.g. ``"entity"``, ``"search"``).
         args: Positional arguments for the command.
+        metadata_file: Resolved path to the metadata XML file.
+        cli_env: Connection overrides from CLI flags (``SAP_*`` keys).
     """
     try:
         if command == 'entities':
@@ -233,6 +279,16 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
             else:
                 repl.print_data_model(explorer)
 
+        elif command == 'picklists':
+            usage = explorer.get_picklist_usage()
+            print(json.dumps(usage, indent=2, ensure_ascii=False))
+
+        elif command in ('picklist', 'pk'):
+            if not args:
+                console.print("[yellow]Usage: picklist <name>[/]")
+                sys.exit(1)
+            run_picklist_command(args[0], metadata_file, cli_env or {})
+
         else:
             console.print(f"[red]Unknown command: {command}[/]")
             console.print("[dim]Run with --help for usage[/]")
@@ -241,6 +297,122 @@ def run_command(explorer: CSDLExplorer, command: str, args: list[str]):
     except Exception as e:
         console.print(f"[red]Error: {e}[/]")
         sys.exit(1)
+
+
+def run_picklist_command(
+    picklist_name: str,
+    metadata_file: Path | None,
+    cli_env: dict[str, str],
+):
+    """Fetch picklist values from OData API and print JSON to stdout.
+
+    Builds a connection from the ``.env`` file alongside the metadata XML
+    (if it exists), with CLI flag overrides applied on top.
+
+    Args:
+        picklist_name: Picklist identifier (e.g. ``"ecJobCode"``).
+        metadata_file: Resolved path to the metadata XML file.
+        cli_env: Connection overrides from CLI flags (``SAP_*`` keys).
+    """
+    from .sap_client import SAPConnection, SAPClient, load_env_file
+
+    # Build env dict: .env file as base, CLI flags as overrides
+    env = {}
+    if metadata_file:
+        env_path = metadata_file.with_suffix('.env')
+        if env_path.exists():
+            env = load_env_file(env_path)
+    env.update(cli_env)
+
+    connection = SAPConnection.from_env_dict(env)
+    if not connection.base_url:
+        console.print(
+            "[red]Error: No base URL configured.[/]\n"
+            "[dim]Provide --base-url or create a .env file alongside your metadata XML "
+            "with SAP_BASE_URL=...[/]"
+        )
+        sys.exit(1)
+
+    async def _fetch():
+        client = SAPClient(connection)
+        try:
+            await client.authenticate()
+            return await client.get_picklist_values(picklist_name)
+        finally:
+            await client.close()
+
+    try:
+        results = asyncio.run(_fetch())
+    except Exception as e:
+        console.print(f"[red]Error fetching picklist: {e}[/]")
+        sys.exit(1)
+
+    print(json.dumps(results, indent=2, ensure_ascii=False))
+
+
+def _parse_query_flags(args: list[str]) -> tuple[dict[str, str], list[str]]:
+    """Parse query-specific CLI flags from args list.
+
+    Returns:
+        Tuple of (parsed_flags_dict, remaining_args).
+        parsed_flags_dict keys: 'filter', 'select', 'orderby', 'orderby_dir',
+        'top', 'expand', 'asof_date', 'from_date', 'to_date'.
+    """
+    query_flags = {
+        '--filter': 'filter',
+        '--select': 'select',
+        '--orderby': 'orderby',
+        '--orderby-dir': 'orderby_dir',
+        '--top': 'top',
+        '--expand': 'expand',
+        '--asof-date': 'asof_date',
+        '--from-date': 'from_date',
+        '--to-date': 'to_date',
+    }
+
+    parsed = {}
+    remaining = []
+    i = 0
+
+    while i < len(args):
+        arg = args[i]
+
+        if arg in query_flags:
+            if i + 1 >= len(args):
+                console.print(f"[red]Error: {arg} requires a value[/]")
+                sys.exit(1)
+            key = query_flags[arg]
+            parsed[key] = args[i + 1]
+            i += 2
+        else:
+            remaining.append(arg)
+            i += 1
+
+    return parsed, remaining
+
+
+def _validate_query_flags(flags: dict[str, str]) -> None:
+    """Validate query flags for conflicts and correctness.
+
+    Raises:
+        SystemExit: On validation errors.
+    """
+    # Check mutually exclusive date params
+    if flags.get('asof_date') and (flags.get('from_date') or flags.get('to_date')):
+        console.print(
+            "[red]Error: --asof-date is mutually exclusive with --from-date/--to-date[/]"
+        )
+        sys.exit(1)
+
+    # Validate $top is numeric
+    if 'top' in flags:
+        try:
+            top_val = int(flags['top'])
+            if top_val <= 0:
+                raise ValueError("must be > 0")
+        except (ValueError, TypeError):
+            console.print(f"[red]Error: --top must be a positive integer, got '{flags['top']}'[/]")
+            sys.exit(1)
 
 
 if __name__ == "__main__":
