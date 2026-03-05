@@ -47,6 +47,7 @@ Explore OData $metadata to discover entities, fields, and navigation properties.
     path <name>        Suggest JSON paths
     picklists          List all picklist names and their entities (JSON)
     picklist <name>    Fetch picklist values as JSON (requires connection)
+    query <name>       Execute OData query on entity (see examples below)
     emp                List Emp* entities (SAP SuccessFactors)
     per                List Per* entities (SAP SuccessFactors)
 
@@ -74,6 +75,17 @@ Explore OData $metadata to discover entities, fields, and navigation properties.
 
     # Fetch picklist values with inline connection
     csdl-explore metadata.xml --base-url https://api.example.com/odata/v2 --auth-type bearer --bearer-token TOKEN picklist ecJobCode
+
+    # Query with defaults (top 20)
+    csdl-explore metadata.xml query EmpJob
+
+    # Query with filters and selection
+    csdl-explore metadata.xml query EmpJob \\
+      --filter "startDate gt datetime'2024-01-01'" \\
+      --select "id,firstName,lastName" \\
+      --orderby "createdDate" \\
+      --orderby-dir "desc" \\
+      --top 50
 """
 
 
@@ -173,7 +185,16 @@ def run_file_mode(
         else:
             repl.run_interactive(explorer)
     else:
-        run_command(explorer, command, cmd_args, metadata_file, cli_env or {})
+        # Parse query-specific flags from cmd_args if command is 'query'
+        if command == 'query':
+            query_flags, remaining_args = _parse_query_flags(cmd_args)
+            if not remaining_args:
+                console.print("[yellow]Usage: query <entity> [flags][/]")
+                sys.exit(1)
+            entity_name = remaining_args[0]
+            run_query_command(entity_name, query_flags, metadata_file, cli_env or {})
+        else:
+            run_command(explorer, command, cmd_args, metadata_file, cli_env or {})
 
 
 def run_textual_app(explorer: CSDLExplorer):
