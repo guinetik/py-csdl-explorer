@@ -18,6 +18,7 @@ from .picklist_impact_tab import PicklistImpactTab
 from .picklist_values_tab import PicklistValuesTab
 from .filterable_table import FilterableDataTable
 from .json_viewer_modal import JsonViewerModal
+from .record_view_modal import RecordViewModal
 from .nav_graph import NavigationGraph
 from .global_search import GlobalSearch
 from .welcome_tab import WelcomeTabPane
@@ -29,5 +30,6 @@ __all__ = [
     "DetailsTab", "PropertiesTab", "QueryTab",
     "PicklistOverviewTab", "PicklistEntitiesTab",
     "PicklistImpactTab", "PicklistValuesTab",
-    "JsonViewerModal", "NavigationGraph", "GlobalSearch", "WelcomeTabPane",
+    "JsonViewerModal", "RecordViewModal",
+    "NavigationGraph", "GlobalSearch", "WelcomeTabPane",
 ]

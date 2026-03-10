@@ -231,6 +231,11 @@ class CSDLExplorerApp(App):
         """Handle global search selection — open entity in a tab."""
         self._open_entity_tab(event.entity_name)
 
+    @on(GlobalSearch.PicklistSelected)
+    def on_global_search_picklist_selected(self, event: GlobalSearch.PicklistSelected) -> None:
+        """Handle global search picklist selection — open picklist in a tab."""
+        self._open_picklist_tab(event.picklist_name, event.entity_names)
+
     # ── Tab management ───────────────────────────────────────────
 
     def _open_entity_tab(self, name: str) -> None:
@@ -348,22 +353,18 @@ class CSDLExplorerApp(App):
 
     @on(TabbedContent.TabActivated, "#tabs")
     def on_tab_activated(self, event: TabbedContent.TabActivated) -> None:
-        """Update subtitle and filter bar when switching tabs."""
+        """Update subtitle and reset filter bar when switching tabs."""
+        # Always reset the app-level filter on tab switch
+        self._table_filter = ""
+        self.query_one("#filter-bar", FilterBar).hide()
+
         pane = event.pane
         if isinstance(pane, EntityTabPane):
             self.sub_title = pane.entity.name
-            self._table_filter = pane._table_filter
-            bar = self.query_one("#filter-bar", FilterBar)
-            if self._table_filter:
-                bar.show_filter(self._table_filter)
-            else:
-                bar.hide()
         elif isinstance(pane, PicklistTabPane):
             self.sub_title = f"Picklist: {pane.picklist_name}"
-            self.query_one("#filter-bar", FilterBar).hide()
         elif pane.id == "welcome-tab":
             self.sub_title = f"{self.explorer.entity_count} entities"
-            self.query_one("#filter-bar", FilterBar).hide()
             # Focus the global search so user can start typing
             try:
                 search = pane.query_one("#global-search", GlobalSearch)
@@ -404,12 +405,14 @@ class CSDLExplorerApp(App):
         # If there's an active table filter, clear that first
         if self._table_filter:
             self._table_filter = ""
+            from .widgets import FilterableDataTable
             tabs = self.query_one("#tabs", TabbedContent)
             active = tabs.active
             if active and active != "welcome-tab":
                 try:
-                    pane = tabs.query_one(f"#{active}", EntityTabPane)
-                    pane.apply_filter("")
+                    active_pane = tabs.query_one(f"#{active}")
+                    for ft in active_pane.query(FilterableDataTable):
+                        ft.apply_filter("")
                 except Exception:
                     pass
             self.query_one("#filter-bar", FilterBar).hide()
