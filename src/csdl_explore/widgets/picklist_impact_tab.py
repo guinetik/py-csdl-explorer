@@ -2,11 +2,12 @@
 
 import re
 from textual.containers import VerticalScroll
-from textual.widgets import Static, DataTable, TabPane
+from textual.widgets import Static, TabPane
 
 from ..parser import Property
 from ..formatters import format_flag_check, compute_picklist_impact
 from ..themes import VERCEL_THEME
+from .filterable_table import FilterableDataTable
 
 
 def _sanitize_id(name: str) -> str:
@@ -33,7 +34,7 @@ class PicklistImpactTab(TabPane):
     def compose(self):
         with VerticalScroll():
             yield Static(id=f"pick-impact-summary-{_sanitize_id(self._picklist_name)}")
-            yield DataTable(
+            yield FilterableDataTable(
                 id=f"pick-impact-table-{_sanitize_id(self._picklist_name)}",
                 zebra_stripes=True,
                 cursor_type="row",
@@ -54,7 +55,7 @@ class PicklistImpactTab(TabPane):
         )
         self.query_one(f"#pick-impact-summary-{_sanitize_id(self._picklist_name)}", Static).update(summary_text)
 
-        table = self.query_one(f"#pick-impact-table-{_sanitize_id(self._picklist_name)}", DataTable)
+        table = self.query_one(f"#pick-impact-table-{_sanitize_id(self._picklist_name)}", FilterableDataTable)
         table.add_column("Entity", width=25, key="entity")
         table.add_column("Property", width=20, key="property")
         table.add_column("Req", width=3, key="req")
@@ -66,7 +67,7 @@ class PicklistImpactTab(TabPane):
 
         for entity_name in sorted(self._picklist_data):
             for prop in self._picklist_data[entity_name]:
-                table.add_row(
+                table.add_filtered_row(
                     entity_name, prop.name,
                     format_flag_check(prop.required),
                     format_flag_check(prop.creatable),

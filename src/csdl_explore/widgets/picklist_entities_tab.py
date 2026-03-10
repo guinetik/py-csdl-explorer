@@ -1,12 +1,13 @@
-"""Picklist Entities sub-tab — DataTable of entities using this picklist."""
+"""Picklist Entities sub-tab — FilterableDataTable of entities using this picklist."""
 
 import re
-from textual.widgets import DataTable, TabPane
+from textual.widgets import TabPane
 from textual.message import Message
 from textual import on
 
 from ..parser import Property
 from ..formatters import format_flag_check
+from .filterable_table import FilterableDataTable
 
 
 def _sanitize_id(name: str) -> str:
@@ -36,10 +37,9 @@ class PicklistEntitiesTab(TabPane):
         super().__init__("Entities", id=tab_id)
         self._picklist_name = picklist_name
         self._picklist_data = picklist_data
-        self._entity_rows: list[str] = []
 
     def compose(self):
-        yield DataTable(
+        yield FilterableDataTable(
             id=f"pick-entity-table-{_sanitize_id(self._picklist_name)}",
             zebra_stripes=True,
             cursor_type="row",
@@ -51,7 +51,9 @@ class PicklistEntitiesTab(TabPane):
 
     def _setup_table(self) -> None:
         """Add columns and rows."""
-        table = self.query_one(f"#pick-entity-table-{_sanitize_id(self._picklist_name)}", DataTable)
+        table = self.query_one(
+            f"#pick-entity-table-{_sanitize_id(self._picklist_name)}", FilterableDataTable,
+        )
         table.add_column("Entity", width=25, key="entity")
         table.add_column("Property", width=20, key="property")
         table.add_column("Type", width=15, key="type")
@@ -60,23 +62,21 @@ class PicklistEntitiesTab(TabPane):
         table.add_column("C", width=3, key="create")
         table.add_column("U", width=3, key="update")
 
-        self._entity_rows = []
         for entity_name in sorted(self._picklist_data):
             for prop in self._picklist_data[entity_name]:
-                table.add_row(
+                table.add_filtered_row(
                     entity_name, prop.name, prop.type, prop.label or "",
                     format_flag_check(prop.required),
                     format_flag_check(prop.creatable),
                     format_flag_check(prop.updatable),
                 )
-                self._entity_rows.append(entity_name)
 
-    @on(DataTable.RowSelected)
-    def _on_row_selected(self, event: DataTable.RowSelected) -> None:
+    @on(FilterableDataTable.RowSelected)
+    def _on_row_selected(self, event: FilterableDataTable.RowSelected) -> None:
         """Post EntitySelected when a row is clicked."""
-        table_id = f"pick-entity-table-{self._picklist_name}"
+        table_id = f"pick-entity-table-{_sanitize_id(self._picklist_name)}"
         if event.data_table.id != table_id:
             return
-        row_idx = event.cursor_row
-        if 0 <= row_idx < len(self._entity_rows):
-            self.post_message(self.EntitySelected(self._entity_rows[row_idx]))
+        row_data = event.data_table.get_row(event.row_key)
+        entity_name = str(row_data[0])
+        self.post_message(self.EntitySelected(entity_name))
