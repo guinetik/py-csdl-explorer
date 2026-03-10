@@ -11,6 +11,7 @@ from textual import on
 from rich.tree import Tree as RichTree
 
 from ..formatters import detect_syntax_lexer, detect_file_extension, build_tree_structure, format_odata_value
+from .filterable_table import FilterableDataTable
 from .json_viewer_modal import JsonViewerModal
 
 
@@ -117,7 +118,7 @@ class ResultsViewer(Widget):
                 )
         with TabbedContent(id=f"rv-tabs-{vid}"):
             with TabPane("Table", id=f"rv-tab-table-{vid}"):
-                yield DataTable(
+                yield FilterableDataTable(
                     id=f"rv-table-{vid}",
                     zebra_stripes=True,
                     cursor_type="row",
@@ -179,7 +180,8 @@ class ResultsViewer(Widget):
         )
 
         # ── Table tab ────────────────────────────────────────
-        table = self.query_one(f"#rv-table-{vid}", DataTable)
+        table = self.query_one(f"#rv-table-{vid}", FilterableDataTable)
+        table.clear_filtered_rows()
         table.clear(columns=True)
         # Compute column widths from header + data so table overflows horizontally
         formatted_rows = []
@@ -189,8 +191,8 @@ class ResultsViewer(Widget):
             max_val = max((len(r[i]) for r in formatted_rows), default=0)
             width = max(len(col), min(max_val, 40)) + 2
             table.add_column(col, key=col, width=width)
-        for row in formatted_rows:
-            table.add_row(*row)
+        for i, row in enumerate(formatted_rows):
+            table.add_filtered_row(*row, key=str(i))
 
         # ── Raw tab ──────────────────────────────────────────
         lexer = detect_syntax_lexer(content_type)
@@ -210,7 +212,8 @@ class ResultsViewer(Widget):
     def _clear_tabs(self) -> None:
         """Reset all tab contents to empty state."""
         vid = self._viewer_id
-        table = self.query_one(f"#rv-table-{vid}", DataTable)
+        table = self.query_one(f"#rv-table-{vid}", FilterableDataTable)
+        table.clear_filtered_rows()
         table.clear(columns=True)
         self.query_one(f"#rv-raw-{vid}", TextArea).load_text("")
         self.query_one(f"#rv-tree-{vid}", Static).update("")
@@ -261,8 +264,9 @@ class ResultsViewer(Widget):
             return
 
         try:
-            self._show_row_detail(event.cursor_row)
-        except Exception as e:
+            row_index = int(event.row_key.value)
+            self._show_row_detail(row_index)
+        except (ValueError, Exception) as e:
             self.app.notify(f"Error showing row: {e}", severity="error")
 
     def on_data_table_cell_selected(self, event: DataTable.CellSelected) -> None:
@@ -271,6 +275,7 @@ class ResultsViewer(Widget):
             return
 
         try:
-            self._show_row_detail(event.cursor_row)
-        except Exception as e:
+            row_index = int(event.cell_key.row_key.value)
+            self._show_row_detail(row_index)
+        except (ValueError, Exception) as e:
             self.app.notify(f"Error showing row: {e}", severity="error")
