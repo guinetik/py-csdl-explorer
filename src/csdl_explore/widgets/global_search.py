@@ -56,6 +56,19 @@ class GlobalSearch(Widget):
             super().__init__()
             self.entity_name = entity_name
 
+    class PicklistSelected(Message):
+        """Posted when a picklist is selected from search results.
+
+        Attributes:
+            picklist_name: Name of the picklist to open.
+            entity_names: Entities that reference this picklist.
+        """
+
+        def __init__(self, picklist_name: str, entity_names: list[str]) -> None:
+            super().__init__()
+            self.picklist_name = picklist_name
+            self.entity_names = entity_names
+
     def __init__(self, explorer: CSDLExplorer, **kwargs) -> None:
         super().__init__(**kwargs)
         self._explorer = explorer
@@ -132,6 +145,7 @@ class GlobalSearch(Widget):
                     "name": picklist_name,
                     "location": f"{len(entity_names)} entities",
                     "entity": entity_names[0] if entity_names else "",
+                    "entity_names": entity_names,
                 })
 
         # Search navigation properties
@@ -152,17 +166,28 @@ class GlobalSearch(Widget):
         table = self.query_one("#global-search-results", DataTable)
         table.clear()
 
-        for result in results[:100]:  # Limit to 100 results for performance
+        for i, result in enumerate(results[:100]):  # Limit to 100 results for performance
             table.add_row(
                 result["type"],
                 result["name"],
                 result["location"],
+                key=str(i),
             )
 
     @on(DataTable.RowSelected, "#global-search-results")
     def on_row_selected(self, event: DataTable.RowSelected) -> None:
-        """Handle row selection - open the associated entity."""
-        if event.row_key.value is not None and event.row_key.value < len(self._all_results):
-            result = self._all_results[event.row_key.value]
-            if result["entity"]:
-                self.post_message(self.EntitySelected(result["entity"]))
+        """Handle row selection - open the associated entity or picklist."""
+        try:
+            idx = int(event.row_key.value)
+        except (ValueError, TypeError):
+            return
+        if idx >= len(self._all_results):
+            return
+
+        result = self._all_results[idx]
+        if result["type"] == "Picklist":
+            self.post_message(
+                self.PicklistSelected(result["name"], result.get("entity_names", []))
+            )
+        elif result["entity"]:
+            self.post_message(self.EntitySelected(result["entity"]))
